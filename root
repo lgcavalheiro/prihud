@@ -1,0 +1,2 @@
+0 */6 * * * python3 /app/scrapper.py
+* * * * *  echo "Hello $(date)!"

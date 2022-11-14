@@ -1,0 +1,6 @@
+autopep8
+pylint
+beautifulsoup4
+selenium
+pymongo
+psycopg2-binary
