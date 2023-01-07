@@ -9,10 +9,7 @@ COPY geckodriver ./
 # deps install
 RUN \
     apk update && \
-    apk add --no-cache postgresql-libs libressl-dev musl-dev libffi-dev firefox && \
-    apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
     pip install --upgrade pip && \
-    pip3 install --no-cache-dir -r requirements.txt && \
-    apk --purge del .build-deps
+    pip3 install --no-cache-dir -r requirements.txt
 # execution
 CMD crond -l 2 -f
