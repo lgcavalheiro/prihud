@@ -4,7 +4,7 @@ from django.urls import reverse
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=128, null=False)
+    name = models.CharField(max_length=128)
     created_at = models.DateTimeField('created_at', default=now)
     updated_at = models.DateTimeField('updated_at', default=now)
 
@@ -13,8 +13,8 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=128, null=False)
-    category = models.ForeignKey(Category, on_delete=models.DO_NOTHING)
+    name = models.CharField(max_length=128)
+    categories = models.ManyToManyField(Category)
     created_at = models.DateTimeField('created_at', default=now)
     updated_at = models.DateTimeField('updated_at', default=now)
 
@@ -23,21 +23,22 @@ class Product(models.Model):
 
 
 class Target(models.Model):
-    url = models.CharField(max_length=256, null=False)
-    selector_type = models.CharField(max_length=8, null=False)
-    selector = models.CharField(max_length=256, null=False)
+    alias = models.CharField(max_length=128, null=True)
+    url = models.CharField(max_length=256)
+    selector_type = models.CharField(max_length=8)
+    selector = models.CharField(max_length=256)
     product = models.ForeignKey(
-        Product, on_delete=models.DO_NOTHING, null=False)
+        Product, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField('created_at', default=now)
     updated_at = models.DateTimeField('updated_at', default=now)
 
     def __str__(self):
-        return f'{self.url} - {self.selector_type} - {self.selector} - {self.created_at}'
+        return self.alias or self.url
 
 
 class PriceHistory(models.Model):
     price = models.FloatField(null=False)
-    target = models.ForeignKey(Target, on_delete=models.DO_NOTHING, null=False)
+    target = models.ForeignKey(Target, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField('created_at', default=now)
     updated_at = models.DateTimeField('updated_at', default=now)
 

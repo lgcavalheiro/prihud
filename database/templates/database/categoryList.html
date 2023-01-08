@@ -1,0 +1,15 @@
+{% extends 'database/base.html' %} {% block content %}
+<main class="container">
+  <h1>Category list</h1>
+  <ul>
+    {% for category in categories %}
+    <li>
+      <a href="{% url 'database:productsByCategoryView' category.id %}"
+        >{{ category.name }}</a
+      >
+    </li>
+    {% endfor %}
+  </ul>
+  <br />
+</main>
+{% endblock %}

@@ -1,7 +1,23 @@
-<h3>{{ product_name }}</h3>
-<div id="container">
-  <canvas id="history-chart"></canvas>
-</div>
+{% extends 'database/base.html' %} {% block content %}
+<main class="container">
+  <h3>{{ product_name }}</h3>
+  <div id="container">
+    <canvas id="history-chart"></canvas>
+  </div>
+  <br />
+  <details>
+    <summary>Go to product page</summary>
+    <ul>
+      {% for ref in target_refs %}
+      <li>
+        <a href="{{ ref.url }}" target="__blank"
+          >{% firstof ref.alias ref.url %}</a
+        >
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+</main>
 
 <script
   src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.1.2/chart.umd.js"
@@ -14,17 +30,7 @@
     type: "line",
     data: {
         labels: {{ labels|safe }},
-        datasets: [{
-            'label': "{{ target_url|safe }}",
-            'data': {{ data|safe }},
-            'borderColor': 'rgb(75, 192, 192)',
-            'tension': 0.1,
-        }, {
-            'label':" {{ target_url|safe }}",
-            'data': {{ data|safe }},
-            'borderColor': 'rgb(13, 155, 19)',
-            'tension': 0.1,
-        }]
+        datasets: {{ datasets|safe }}
     },
     options: {
         responsive: true,
@@ -36,3 +42,4 @@
     window.historyChart = new Chart(ctx, config);
   };
 </script>
+{% endblock %}

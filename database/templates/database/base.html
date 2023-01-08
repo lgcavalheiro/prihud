@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Prihud{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
+    />
+  </head>
+  <body>
+    <nav class="container">
+      <ul>
+        <li><strong>Prihud</strong></li>
+      </ul>
+      <ul>
+        <li><a href="{% url 'database:categoryList' %}">Categories</a></li>
+        <li><a href="{% url 'database:productList' %}">Products</a></li>
+      </ul>
+    </nav>
+    {% block content %}{% endblock %}
+  </body>
+</html>

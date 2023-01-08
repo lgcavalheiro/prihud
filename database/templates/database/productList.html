@@ -1,0 +1,18 @@
+{% extends 'database/base.html' %} {% block content %}
+<main class="container">
+  {% if not products %}
+  <h1>No products found for this category :(</h1>
+  {% else %}
+  <h1>Product list</h1>
+  <ul>
+    {% for product in products %}
+    <li>
+      <a href="{% url 'database:priceHistory' product.id %}"
+        >{{ product.name }}</a
+      >
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</main>
+{% endblock %}
