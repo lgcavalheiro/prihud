@@ -1,10 +1,8 @@
-# from django.urls import path
+from django.urls import path
 
-# from . import views
+from . import views
 
-# app_name = 'database'
-# urlpatterns = [
-#     path('', views.IndexView.as_view(), name='index'),
-#     path('<int:pk>/', views.DetailView.as_view(), name='detail'),
-#     path('create/', views.CategoryCreateView.as_view(), name='create')
-# ]
+app_name = 'database'
+urlpatterns = [
+    path('history/<int:product_id>/', views.PriceHistoryView, name='priceHistory')
+]

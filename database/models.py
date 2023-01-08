@@ -11,9 +11,6 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-    # def get_absolute_url(self):
-    #     return reverse('database:index')
-
 
 class Product(models.Model):
     name = models.CharField(max_length=128, null=False)
@@ -35,7 +32,7 @@ class Target(models.Model):
     updated_at = models.DateTimeField('updated_at', default=now)
 
     def __str__(self):
-        return f'{self.url} - {self.selector_type} - {self.selector}'
+        return f'{self.url} - {self.selector_type} - {self.selector} - {self.created_at}'
 
 
 class PriceHistory(models.Model):

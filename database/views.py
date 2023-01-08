@@ -1,21 +1,22 @@
-# from .models import Category
-# from django.views import generic
+from .models import PriceHistory, Target, Product
+from django.shortcuts import render
+from datetime import datetime
 
 
-# class IndexView(generic.ListView):
-#     template_name = 'category/index.html'
-#     context_object_name = 'categories'
+def PriceHistoryView(request, product_id):
+    product = Product.objects.filter(id=product_id).first()
+    target = Target.objects.filter(product=product).first()
+    history = PriceHistory.objects.filter(target=target).all()
 
-#     def get_queryset(self):
-#         return Category.objects.all()
+    data = []
+    labels = []
+    for h in history:
+        data.append(h.price)
+        labels.append(h.created_at.strftime("%m/%d/%Y, %H:%M:%S"))
 
-
-# class DetailView(generic.DetailView):
-#     model = Category
-#     template_name = 'category/detail.html'
-
-
-# class CategoryCreateView(generic.edit.CreateView):
-#     model = Category
-#     fields = ['name']
-#     template_name = 'category/create.html'
+    return render(request, 'database/priceHistory.html', {
+        'data': data,
+        'labels': labels,
+        'product_name': product.name,
+        'target_url': target.url,
+    })

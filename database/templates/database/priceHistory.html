@@ -1,0 +1,38 @@
+<h3>{{ product_name }}</h3>
+<div id="container">
+  <canvas id="history-chart"></canvas>
+</div>
+
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.1.2/chart.umd.js"
+  integrity="sha512-t41WshQCxr9T3SWH3DBZoDnAT9gfVLtQS+NKO60fdAwScoB37rXtdxT/oKe986G0BFnP4mtGzXxuYpHrMoMJLA=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+></script>
+<script>
+  var config = {
+    type: "line",
+    data: {
+        labels: {{ labels|safe }},
+        datasets: [{
+            'label': "{{ target_url|safe }}",
+            'data': {{ data|safe }},
+            'borderColor': 'rgb(75, 192, 192)',
+            'tension': 0.1,
+        }, {
+            'label':" {{ target_url|safe }}",
+            'data': {{ data|safe }},
+            'borderColor': 'rgb(13, 155, 19)',
+            'tension': 0.1,
+        }]
+    },
+    options: {
+        responsive: true,
+    }
+  };
+
+  window.onload = function () {
+    var ctx = document.getElementById("history-chart").getContext("2d");
+    window.historyChart = new Chart(ctx, config);
+  };
+</script>
