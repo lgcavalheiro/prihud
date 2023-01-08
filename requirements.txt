@@ -1,7 +1,6 @@
 autopep8
 pylint
-beautifulsoup4
 selenium
 Django
 apprise
-
+webdriver-manager

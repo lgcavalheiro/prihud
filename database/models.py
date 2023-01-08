@@ -5,8 +5,8 @@ from django.urls import reverse
 
 class Category(models.Model):
     name = models.CharField(max_length=128, null=False)
-    created_at = models.DateTimeField('created_at', null=False, default=now)
-    updated_at = models.DateTimeField('updated_at', null=False, default=now)
+    created_at = models.DateTimeField('created_at', default=now)
+    updated_at = models.DateTimeField('updated_at', default=now)
 
     def __str__(self):
         return self.name
@@ -18,8 +18,8 @@ class Category(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=128, null=False)
     category = models.ForeignKey(Category, on_delete=models.DO_NOTHING)
-    created_at = models.DateTimeField('created_at', null=False, default=now)
-    updated_at = models.DateTimeField('updated_at', null=False, default=now)
+    created_at = models.DateTimeField('created_at', default=now)
+    updated_at = models.DateTimeField('updated_at', default=now)
 
     def __str__(self):
         return self.name
@@ -31,18 +31,18 @@ class Target(models.Model):
     selector = models.CharField(max_length=256, null=False)
     product = models.ForeignKey(
         Product, on_delete=models.DO_NOTHING, null=False)
-    created_at = models.DateTimeField('created_at', null=False, default=now)
-    updated_at = models.DateTimeField('updated_at', null=False, default=now)
+    created_at = models.DateTimeField('created_at', default=now)
+    updated_at = models.DateTimeField('updated_at', default=now)
 
     def __str__(self):
-        return f'{url} - {selector_type} - {selector}'
+        return f'{self.url} - {self.selector_type} - {self.selector}'
 
 
 class PriceHistory(models.Model):
     price = models.FloatField(null=False)
     target = models.ForeignKey(Target, on_delete=models.DO_NOTHING, null=False)
-    created_at = models.DateTimeField('created_at', null=False, default=now)
-    updated_at = models.DateTimeField('updated_at', null=False, default=now)
+    created_at = models.DateTimeField('created_at', default=now)
+    updated_at = models.DateTimeField('updated_at', default=now)
 
     def __str__(self):
-        return f'{price} - {target}'
+        return f'{self.price} - {self.target}'

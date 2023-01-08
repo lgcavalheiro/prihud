@@ -4,4 +4,6 @@ services:
   app:
     build:
       context: .
-
+    # volumes:
+    #   - .:/app
+    network_mode: host
