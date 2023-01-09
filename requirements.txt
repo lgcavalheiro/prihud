@@ -4,3 +4,4 @@ selenium
 Django
 apprise
 webdriver-manager
+django-environ

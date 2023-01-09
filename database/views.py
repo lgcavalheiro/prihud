@@ -49,10 +49,10 @@ def PriceHistoryView(request, product_id):
                 'tension': 0.1,
             }
         partial_data[h.target.url]['data'].append(h.price)
-        labels.append(h.created_at.strftime("%m/%d/%Y, %H:%M"))
+        labels.append(h.created_at.strftime("%m/%d/%y %H:%M"))
 
     if len(partial_data) > 1:
-        labels = list(set(labels))[:len(partial_data)]
+        labels = list(set(labels))
 
     return render(request, 'database/priceHistory.html', {
         'labels': labels,

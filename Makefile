@@ -1,5 +1,16 @@
-dev_run:
+present:
+	@echo "                _ __              __"
+	@echo "    ____  _____(_) /_  __  ______/ /"
+	@echo "   / __ \/ ___/ / __ \/ / / / __  /"
+	@echo "  / /_/ / /  / / / / / /_/ / /_/ /"
+	@echo " / .___/_/  /_/_/ /_/\__,_/\__,_/"
+	@echo "/_/"
+
+dev_run: present
 	python manage.py runserver
 
-dbu:
+dbu: present
 	docker-compose down && docker-compose build && docker-compose up
+
+dbu_bg: present
+	docker-compose down && docker-compose build && docker-compose up -d

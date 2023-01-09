@@ -5,6 +5,7 @@ EXPOSE 8000
 # file copy
 COPY root /var/spool/cron/crontabs/root
 COPY requirements.txt ./
+COPY .env ./
 COPY manage.py ./
 COPY prihud ./prihud
 COPY database ./database

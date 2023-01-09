@@ -1,2 +1,1 @@
-0 */6 * * * python manage.py scrape
-* * * * *  echo "Hello $(date)!"
+0 */1 * * * python manage.py scrape
