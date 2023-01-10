@@ -14,6 +14,7 @@ from datetime import datetime
 class Command(BaseCommand):
     help = 'Run scraper for fetching price data'
     driver = None
+    logger = None
     successes = 0
     selector_dict = {
         'css': By.CSS_SELECTOR,
@@ -21,7 +22,6 @@ class Command(BaseCommand):
         'tag': By.TAG_NAME,
         'class': By.CLASS_NAME,
     }
-    logger = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -56,8 +56,10 @@ class Command(BaseCommand):
                 price_tag = self.driver.find_element(
                     by=self.selector_dict[target.selector_type], value=target.selector)
                 if not price_tag:
-                    self.stderr.write(
-                        f'Price not found! Skipping {target.url} @ {target.product.name}')
+                    err_msg = f'Price not found! Skipping {target.url} @ {target.product.name}'
+                    self.stderr.write(err_msg)
+                    self.logger.fail(
+                        err_msg, f'Price not found {target.alias or ""} {target.url}')
                     continue
 
                 price = price_tag.text.replace('R$', '').replace(
@@ -74,7 +76,7 @@ class Command(BaseCommand):
                 self.logger.fail(
                     err_msg, f"Target failed {target.alias or ''} {target.url}")
             except Exception as e:
-                err_msg = f"Scraping target failed with {type(e)}"
+                err_msg = f"Scraping target failed with {e}"
                 self.stderr.write(err_msg)
                 self.logger.fail(
                     err_msg, f"Target failed {target.alias or ''} {target.url}")

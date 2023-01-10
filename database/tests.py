@@ -1,5 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.core.management import call_command
+from io import StringIO
 from .utils import gen_color, rand
 from .models import Category, Product, Target, PriceHistory
 
@@ -14,14 +16,21 @@ def create_product():
     return test_product
 
 
-def create_target():
-    return Target.objects.create(url="test_url",
-                                 selector_type="css",
-                                 selector=".test", product=create_product())
+def create_target(url=None):
+    url = url if url else "test_url"
+    return Target.objects.create(url=url, selector_type="css",
+                                 selector=".product-price-current > span:nth-child(1)",
+                                 product=create_product())
 
 
 def create_price_history():
     return PriceHistory.objects.create(price=2.5, target=create_target())
+
+
+def run_scrape_command():
+    out = StringIO()
+    call_command('scrape', stdout=out, stderr=out)
+    return out
 
 
 class UtilsTest(TestCase):
@@ -97,3 +106,25 @@ class PriceHistoryViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, test_price_history.target.product.name)
         self.assertGreater(len(response.context['datasets']), 0)
+
+
+class ScrapeCommandTest(TestCase):
+    def test_run_scrape_no_targets(self):
+        out = run_scrape_command()
+        self.assertIn(
+            "Scrape job finished with 0 out of 0 successes", out.getvalue())
+
+    def test_run_scrape(self):
+        target = create_target(url="https://pt.aliexpress.com/item/4000440445220.html")
+        out = run_scrape_command()
+        self.assertIn(target.url, out.getvalue())
+
+    def test_run_scrape_timeout(self):
+        create_target(url="https://searx.space")
+        out = run_scrape_command()
+        self.assertIn("Target timed out", out.getvalue())
+
+    def test_run_scrape_failed(self):
+        create_target()
+        out = run_scrape_command()
+        self.assertIn("target failed", out.getvalue())
