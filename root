@@ -1,1 +1,1 @@
-0 */1 * * * python manage.py scrape
+0 */6 * * * python /app/manage.py scrape

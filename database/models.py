@@ -37,7 +37,7 @@ class Target(models.Model):
 
 
 class PriceHistory(models.Model):
-    price = models.FloatField(null=False)
+    price = models.FloatField()
     target = models.ForeignKey(Target, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField('created_at', default=now)
     updated_at = models.DateTimeField('updated_at', default=now)

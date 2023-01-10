@@ -1,6 +1,7 @@
 {% extends 'database/base.html' %} {% block content %}
 <main class="container">
   <h1>Category list</h1>
+  {% if categories %}
   <ul>
     {% for category in categories %}
     <li>
@@ -10,6 +11,8 @@
     </li>
     {% endfor %}
   </ul>
-  <br />
+  {% else %}
+  <h2>No categories found</h2>
+  {% endif %}
 </main>
 {% endblock %}

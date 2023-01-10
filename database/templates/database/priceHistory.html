@@ -1,5 +1,6 @@
 {% extends 'database/base.html' %} {% block content %}
 <main class="container">
+  {% if datasets %}
   <h3>{{ product_name }}</h3>
   <div id="container">
     <canvas id="history-chart"></canvas>
@@ -17,6 +18,9 @@
       {% endfor %}
     </ul>
   </details>
+  {% else %}
+  <h3>No price history found for this product</h3>
+  {% endif %}
 </main>
 
 <script
@@ -39,7 +43,7 @@
 
   window.onload = function () {
     var ctx = document.getElementById("history-chart").getContext("2d");
-    window.historyChart = new Chart(ctx, config);
+    if(ctx) window.historyChart = new Chart(ctx, config);
   };
 </script>
 {% endblock %}

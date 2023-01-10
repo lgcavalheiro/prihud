@@ -4,6 +4,6 @@ services:
   app:
     build:
       context: .
-    # volumes:
-    #   - .:/app
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
     network_mode: host

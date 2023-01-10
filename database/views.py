@@ -1,12 +1,8 @@
-import random
 from .models import PriceHistory, Target, Product, Category
 from django.shortcuts import render
 from django.views.generic import ListView
 from datetime import datetime
-
-
-def RAND(): return random.randint(0, 255)
-def GEN_COLOR(): return '#%02X%02X%02X' % (RAND(), RAND(), RAND())
+from .utils import gen_color
 
 
 class CategoryListView(ListView):
@@ -35,8 +31,13 @@ def ProductsByCategoryView(request, category_id):
 
 def PriceHistoryView(request, product_id):
     targets = Target.objects.filter(product_id=product_id)
+    if not targets:
+        return render(request, 'database/priceHistory.html')
+
     history = PriceHistory.objects.filter(
         target_id__in=[t.id for t in targets])
+    if not history:
+        return render(request, 'database/priceHistory.html')
 
     partial_data = {}
     labels = []
@@ -45,7 +46,7 @@ def PriceHistoryView(request, product_id):
             partial_data[h.target.url] = {
                 'label': h.target.alias or h.target.url,
                 'data': [],
-                'borderColor': GEN_COLOR(),
+                'borderColor': gen_color(),
                 'tension': 0.1,
             }
         partial_data[h.target.url]['data'].append(h.price)
@@ -53,6 +54,7 @@ def PriceHistoryView(request, product_id):
 
     if len(partial_data) > 1:
         labels = list(set(labels))
+        labels.sort()
 
     return render(request, 'database/priceHistory.html', {
         'labels': labels,

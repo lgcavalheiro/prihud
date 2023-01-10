@@ -69,15 +69,15 @@ class Command(BaseCommand):
                 price_history.save(self)
                 self.successes += 1
             except TimeoutException as e:
-                err_msg = f"Target timed out"
+                err_msg = f"Target timed out {target.alias or ''} {target.url}"
                 self.stderr.write(err_msg)
                 self.logger.fail(
-                    err_msg, f"Target failed {target.alias} {target.url}")
+                    err_msg, f"Target failed {target.alias or ''} {target.url}")
             except Exception as e:
                 err_msg = f"Scraping target failed with {type(e)}"
                 self.stderr.write(err_msg)
                 self.logger.fail(
-                    err_msg, f"Target failed {target.alias} {target.url}")
+                    err_msg, f"Target failed {target.alias or ''} {target.url}")
 
         end_msg = f'Scrape job finished with {self.successes} out of {len(targets)} successes'
         self.stdout.write(end_msg)
