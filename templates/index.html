@@ -1,0 +1,54 @@
+{% extends 'base.html' %} {% block content %}
+<main class="container">
+  <h1>Welcome back, {{ user.username }}</h1>
+  {% if latest %}
+  <h2>Latest entries</h2>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Product</th>
+        <th scope="col">Last price</th>
+        <th scope="col">Min price</th>
+        <th scope="col">Max price</th>
+        <th scope="col">Checked at</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in latest %}
+      <tr>
+        <td onclick="window.open('{{ entry.target.url }}', '__blank')">
+          <a>{{ entry.target.product.name }}</a>
+        </td>
+        <td>{{ entry.price }}</td>
+        <td>{{ entry.target.min_max_price.price__min }}</td>
+        <td>{{ entry.target.min_max_price.price__max }}</td>
+        <td>{{ entry.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %} {% if inactive %}
+  <h2>Inactive targets</h2>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Product</th>
+        <th scope="col">Store name</th>
+        <th scope="col">Checked at</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in inactive %}
+      <tr>
+        <td onclick="window.open('{{ entry.url }}', '__blank')">
+          <a>{{ entry.product.name }}</a>
+        </td>
+        <td>{{ entry.get_store_name_from_url }}</td>
+        <td>{{ entry.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</main>
+{% endblock %}

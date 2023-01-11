@@ -11,13 +11,25 @@
   </head>
   <body>
     <nav class="container">
+      {% if user.is_authenticated %}
       <ul>
-        <li><strong>Prihud</strong></li>
+        <li onclick="window.location.assign('{% url 'index' %}')">
+          <strong>Prihud</strong>
+        </li>
       </ul>
       <ul>
         <li><a href="{% url 'database:categoryList' %}">Categories</a></li>
         <li><a href="{% url 'database:productList' %}">Products</a></li>
+        <li><a href="{% url 'logout' %}">Logout</a></li>
       </ul>
+      {% else %}
+      <ul>
+        <li><strong>Prihud</strong></li>
+      </ul>
+      <ul>
+        <li><a href="{% url 'login' %}">Login</a></li>
+      </ul>
+      {% endif %}
     </nav>
     {% block content %}{% endblock %}
   </body>

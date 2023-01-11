@@ -1,11 +1,13 @@
 from .models import PriceHistory, Target, Product, Category
 from django.shortcuts import render
 from django.views.generic import ListView
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from datetime import datetime
 from .utils import gen_color
 
 
-class CategoryListView(ListView):
+class CategoryListView(LoginRequiredMixin, ListView):
     template_name = 'database/categoryList.html'
     context_object_name = 'categories'
 
@@ -13,7 +15,7 @@ class CategoryListView(ListView):
         return Category.objects.order_by('name').all()
 
 
-class ProductListView(ListView):
+class ProductListView(LoginRequiredMixin, ListView):
     template_name = 'database/productList.html'
     context_object_name = 'products'
 
@@ -21,6 +23,7 @@ class ProductListView(ListView):
         return Product.objects.order_by('name').all()
 
 
+@login_required
 def ProductsByCategoryView(request, category_id):
     products = Product.objects.filter(categories=category_id)
 
@@ -29,6 +32,7 @@ def ProductsByCategoryView(request, category_id):
     })
 
 
+@login_required
 def PriceHistoryView(request, product_id):
     targets = Target.objects.filter(product_id=product_id)
     if not targets:
