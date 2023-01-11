@@ -43,26 +43,23 @@ def PriceHistoryView(request, product_id):
     if not history:
         return render(request, 'database/priceHistory.html')
 
-    partial_data = {}
     labels = []
+    partial_data = {}
     for h in history:
         if h.target.url not in partial_data:
             partial_data[h.target.url] = {
                 'label': h.target.alias or h.target.url,
                 'data': [],
                 'borderColor': gen_color(),
-                'tension': 0.1,
             }
-        partial_data[h.target.url]['data'].append(h.price)
-        labels.append(h.created_at.strftime("%m/%d/%y %H:%M"))
-
-    if len(partial_data) > 1:
-        labels = list(set(labels))
-        labels.sort()
+        price_date = h.created_at.strftime("%m/%d/%y %H:%M")
+        partial_data[h.target.url]['data'].append(
+            {'x': price_date, 'y': h.price})
+        labels.append(price_date)
 
     return render(request, 'database/priceHistory.html', {
-        'labels': labels,
-        'product_name': targets[0].product.name,
+        'labels': sorted(set(labels)),
         'datasets': list(partial_data.values()),
+        'product_name': targets[0].product.name,
         'target_refs': [{'url': target.url, 'alias': target.alias} for target in targets]
     })

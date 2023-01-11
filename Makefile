@@ -16,4 +16,4 @@ dbu_bg: present
 	docker-compose down && docker-compose build && docker-compose up -d
 
 test:
-	coverage run --source="." manage.py test && coverage html
+	coverage run --source="." manage.py test ${ARGS} && coverage html
