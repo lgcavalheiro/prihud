@@ -27,6 +27,14 @@ class Product(models.Model):
         targets = Target.objects.filter(product_id=self.id).all()
         return PriceHistory.objects.filter(target_id__in=[t.id for t in targets]).order_by('-created_at').all()
 
+    def get_min_max_prices(self):
+        targets = Target.objects.filter(product_id=self.id).all()
+        return PriceHistory.objects.filter(target_id__in=[t.id for t in targets]).aggregate(Min('price'), Max('price'))
+
+    def get_cheapest(self):
+        targets = Target.objects.filter(product_id=self.id).all()
+        return PriceHistory.objects.filter(target_id__in=[t.id for t in targets]).annotate(Min('price')).order_by('price')[0]
+
 
 class Target(models.Model):
     alias = models.CharField(max_length=128, null=True)
@@ -45,7 +53,8 @@ class Target(models.Model):
         return PriceHistory.objects.filter(target_id=self.id).aggregate(Min('price'), Max('price'))
 
     def get_store_name_from_url(self):
-        return self.url.split('.')[1]
+        splitted = self.url.split('.')
+        return splitted[1] if len(splitted) > 1 else ''
 
 
 class PriceHistory(models.Model):

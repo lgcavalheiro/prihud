@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} {% block content %} {% load static %}
 <main class="container">
   <article>
     <header>Login to Prihud</header>
@@ -20,7 +20,12 @@
     <article>
       <header>
         <a href="" aria-label="Close" class="close" onclick="closeModal()"></a>
-        Error
+        <div class="center-aligned">
+          <svg class="icon icon--size-large warn">
+            <use href="{% static 'feather-sprite.svg' %}#alert-circle" />
+          </svg>
+          Error
+        </div>
       </header>
       <span>Error trying to log in, please try again later</span>
     </article>

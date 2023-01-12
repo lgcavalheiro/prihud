@@ -172,3 +172,71 @@ class ScrapeCommandTest(TestCase):
         create_target()
         out = run_scrape_command()
         self.assertIn("target failed", out.getvalue())
+
+
+@tag('model')
+class CategoryModelTest(TestCase):
+    def test_can_str(self):
+        category = create_category()
+        self.assertEqual(category.name, category.__str__())
+
+
+@tag('model')
+class ProductModelTest(TestCase):
+    def setUp(self):
+        self.history = create_price_history()
+        self.product = self.history.target.product
+
+    def test_can_str(self):
+        self.assertEqual(self.product.name, self.product.__str__())
+
+    def test_get_price_history(self):
+        price_history = self.product.get_price_history()
+        self.assertEqual(self.history, price_history[0])
+
+    def test_min_max_prices(self):
+        prices = self.product.get_min_max_prices()
+        self.assertEqual(self.history.price, prices['price__min'])
+        self.assertEqual(self.history.price, prices['price__max'])
+
+    def test_get_cheapest(self):
+        cheapest = self.product.get_cheapest()
+        self.assertEqual(self.history, cheapest)
+
+
+@tag('model')
+class TargetModelTest(TestCase):
+    def setUp(self):
+        self.history = create_price_history()
+        self.target = self.history.target
+
+    def test_can_str(self):
+        self.assertEqual(self.target.url, self.target.__str__())
+
+    def test_can_str_with_alias(self):
+        self.target.alias = "alias-test"
+        self.assertEqual(self.target.alias, self.target.__str__())
+
+    def test_min_max_price(self):
+        price_history = self.target.min_max_price()
+        self.assertEqual(self.history.price, price_history['price__min'])
+        self.assertEqual(self.history.price, price_history['price__max'])
+
+    def test_get_store_name_from_url_empty(self):
+        store_name = self.target.get_store_name_from_url()
+        self.assertEqual('', store_name)
+
+    def test_get_store_name_from_url(self):
+        self.target.url = "https://www.searx.space"
+        store_name = self.target.get_store_name_from_url()
+        self.assertEqual('searx', store_name)
+
+
+@tag('model')
+class PriceHistoryModelTest(TestCase):
+    def setUp(self):
+        self.history = create_price_history()
+
+    def test_can_str(self):
+        self.assertEqual(
+            f'{self.history.price} - {self.history.target} - {self.history.created_at}', self.history.__str__())

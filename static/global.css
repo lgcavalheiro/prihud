@@ -1,0 +1,41 @@
+:root {
+  --warning: #e53935;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.icon--size-small {
+  width: 16px;
+  height: 16px;
+}
+
+.icon--size-large {
+  width: 32px;
+  height: 32px;
+}
+
+.center-aligned {
+  display: flex;
+  gap: 0.4em;
+  align-items: center;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  color: var(--primary);
+}
+
+.warn {
+  color: var(--warning);
+}

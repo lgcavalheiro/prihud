@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} {% block content %} {% load static %}
 <main class="container">
   <h1>Welcome back, {{ user.username }}</h1>
   {% if latest %}
@@ -16,12 +16,25 @@
     <tbody>
       {% for entry in latest %}
       <tr>
-        <td onclick="window.open('{{ entry.target.url }}', '__blank')">
-          <a>{{ entry.target.product.name }}</a>
+        <td>
+          {{ entry.target.product.name }}
+          <a href="{% url 'database:priceHistory' entry.target.product.id %}">
+            <svg class="icon icon--size-small">
+              <use href="{% static 'feather-sprite.svg' %}#link" />
+            </svg>
+          </a>
+          <a
+            href="{{ entry.target.product.get_cheapest.target.url }}"
+            target="__blank"
+          >
+            <svg class="icon icon--size-small">
+              <use href="{% static 'feather-sprite.svg' %}#external-link" />
+            </svg>
+          </a>
         </td>
         <td>{{ entry.price }}</td>
-        <td>{{ entry.target.min_max_price.price__min }}</td>
-        <td>{{ entry.target.min_max_price.price__max }}</td>
+        <td>{{ entry.target.product.get_min_max_prices.price__min }}</td>
+        <td>{{ entry.target.product.get_min_max_prices.price__max }}</td>
         <td>{{ entry.created_at }}</td>
       </tr>
       {% endfor %}
@@ -40,8 +53,18 @@
     <tbody>
       {% for entry in inactive %}
       <tr>
-        <td onclick="window.open('{{ entry.url }}', '__blank')">
-          <a>{{ entry.product.name }}</a>
+        <td>
+          {{ entry.product.name }}
+          <a href="{% url 'database:priceHistory' entry.product.id %}">
+            <svg class="icon icon--size-small">
+              <use href="{% static 'feather-sprite.svg' %}#link" />
+            </svg>
+          </a>
+          <a href="{{ entry.url }}" target="__blank">
+            <svg class="icon icon--size-small">
+              <use href="{% static 'feather-sprite.svg' %}#external-link" />
+            </svg>
+          </a>
         </td>
         <td>{{ entry.get_store_name_from_url }}</td>
         <td>{{ entry.created_at }}</td>

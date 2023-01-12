@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -8,26 +9,54 @@
       rel="stylesheet"
       href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
     />
+    <link rel="stylesheet" href="{% static 'global.css' %}" />
   </head>
   <body>
     <nav class="container">
       {% if user.is_authenticated %}
       <ul>
-        <li onclick="window.location.assign('{% url 'index' %}')">
-          <strong>Prihud</strong>
+        <li
+          class="clickable"
+          onclick="window.location.assign('{% url 'index' %}')"
+        >
+          <strong class="center-aligned">
+            <svg class="icon">
+              <use href="{% static 'feather-sprite.svg' %}#crosshair" />
+            </svg>
+            Prihud
+          </strong>
         </li>
       </ul>
       <ul>
         <li><a href="{% url 'database:categoryList' %}">Categories</a></li>
         <li><a href="{% url 'database:productList' %}">Products</a></li>
-        <li><a href="{% url 'logout' %}">Logout</a></li>
+        <li>
+          <a href="{% url 'logout' %}">
+            <svg class="icon">
+              <use href="{% static 'feather-sprite.svg' %}#log-out" />
+            </svg>
+          </a>
+        </li>
       </ul>
       {% else %}
       <ul>
-        <li><strong>Prihud</strong></li>
+        <li>
+          <strong class="center-aligned">
+            <svg class="icon">
+              <use href="{% static 'feather-sprite.svg' %}#crosshair" />
+            </svg>
+            Prihud
+          </strong>
+        </li>
       </ul>
       <ul>
-        <li><a href="{% url 'login' %}">Login</a></li>
+        <li>
+          <a href="{% url 'login' %}">
+            <svg class="icon">
+              <use href="{% static 'feather-sprite.svg' %}#log-in" />
+            </svg>
+          </a>
+        </li>
       </ul>
       {% endif %}
     </nav>
