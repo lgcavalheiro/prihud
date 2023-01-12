@@ -6,3 +6,4 @@ apprise
 webdriver-manager
 django-environ
 coverage
+extruct

@@ -41,12 +41,13 @@
     </tbody>
   </table>
   {% endif %} {% if inactive %}
-  <h2>Inactive targets</h2>
+  <h2>Recent abnormal targets</h2>
   <table>
     <thead>
       <tr>
         <th scope="col">Product</th>
         <th scope="col">Store name</th>
+        <th scope="col">Status</th>
         <th scope="col">Checked at</th>
       </tr>
     </thead>
@@ -67,7 +68,8 @@
           </a>
         </td>
         <td>{{ entry.get_store_name_from_url }}</td>
-        <td>{{ entry.created_at }}</td>
+        <td>{{ entry.get_recent_price_history.get_verbose_status }}</td>
+        <td>{{ entry.get_recent_price_history.created_at }}</td>
       </tr>
       {% endfor %}
     </tbody>

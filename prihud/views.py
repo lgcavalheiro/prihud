@@ -45,8 +45,8 @@ def Index(request):
     latest = []
     [latest.extend(p.get_price_history()[:1]) for p in products]
 
-    latest_target_ids = set([l.target.id for l in latest])
-    inactive = Target.objects.exclude(id__in=latest_target_ids).all()
+    targets = Target.objects.all()
+    inactive = list(filter(lambda t: not t.is_available(), targets))
 
     return render(request, 'index.html', {
         'latest': latest,

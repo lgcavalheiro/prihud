@@ -56,12 +56,28 @@ class Target(models.Model):
         splitted = self.url.split('.')
         return splitted[1] if len(splitted) > 1 else ''
 
+    def get_recent_price_history(self):
+        return PriceHistory.objects.filter(target_id=self.id).order_by('-created_at').first()
+
+    def is_available(self):
+        return self.get_recent_price_history().status == 'S'
+
 
 class PriceHistory(models.Model):
+    STATUSES = {
+        'S': 'Success',
+        'O': 'Out of stock',
+        'U': 'Undefined status'
+    }
+
     price = models.FloatField()
+    status = models.CharField(max_length=1)
     target = models.ForeignKey(Target, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField('created_at', default=now)
     updated_at = models.DateTimeField('updated_at', default=now)
 
     def __str__(self):
-        return f'{self.price} - {self.target} - {self.created_at}'
+        return f'{self.price} - {self.target} - {self.status} - {self.created_at}'
+
+    def get_verbose_status(self):
+        return self.STATUSES.get(self.status, "Not mapped")

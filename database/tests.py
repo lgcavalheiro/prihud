@@ -31,7 +31,7 @@ def create_target(url=None):
 
 
 def create_price_history():
-    return PriceHistory.objects.create(price=2.5, target=create_target())
+    return PriceHistory.objects.create(price=2.5, status='S', target=create_target())
 
 
 def run_scrape_command():
@@ -231,6 +231,14 @@ class TargetModelTest(TestCase):
         store_name = self.target.get_store_name_from_url()
         self.assertEqual('searx', store_name)
 
+    def test_get_recent_price_history(self):
+        recent = self.target.get_recent_price_history()
+        self.assertEqual(self.history, recent)
+
+    def test_is_available(self):
+        is_available = self.target.is_available()
+        self.assertTrue(is_available)
+
 
 @tag('model')
 class PriceHistoryModelTest(TestCase):
@@ -239,4 +247,4 @@ class PriceHistoryModelTest(TestCase):
 
     def test_can_str(self):
         self.assertEqual(
-            f'{self.history.price} - {self.history.target} - {self.history.created_at}', self.history.__str__())
+            f'{self.history.price} - {self.history.target} - {self.history.status} - {self.history.created_at}', self.history.__str__())
