@@ -1,0 +1,41 @@
+{% extends 'base.html' %} {% block content %} {% load static %}
+<main class="container">
+  <article>
+    <header>Login to Prihud</header>
+    <form action="{% url 'login' %}" method="post">
+      {% csrf_token %}
+      <label for="username">
+        Username
+        <input type="text" name="username" id="username" required />
+      </label>
+      <label for="password">
+        Password
+        <input type="password" name="password" id="password" required />
+      </label>
+      <input type="submit" value="Login" />
+    </form>
+  </article>
+  {% if login_failed %}
+  <dialog open>
+    <article>
+      <header>
+        <a href="" aria-label="Close" class="close" onclick="closeModal()"></a>
+        <div class="center-aligned">
+          <svg class="icon icon--size-large warn">
+            <use href="{% static 'feather-sprite.svg' %}#alert-circle" />
+          </svg>
+          Error
+        </div>
+      </header>
+      <span>Error trying to log in, please try again later</span>
+    </article>
+  </dialog>
+  {% endif %}
+</main>
+
+{% if login_failed %}
+<script>
+  const closeModal = () =>
+    document.querySelector("dialog").setAttribute("open", false);
+</script>
+{% endif %} {% endblock %}

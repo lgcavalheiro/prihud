@@ -1,0 +1,79 @@
+{% extends 'base.html' %} {% block content %} {% load static %}
+<main class="container">
+  <h1>Welcome back, {{ user.username }}</h1>
+  {% if latest %}
+  <h2>Latest entries</h2>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Product</th>
+        <th scope="col">Last price</th>
+        <th scope="col">Min price</th>
+        <th scope="col">Max price</th>
+        <th scope="col">Checked at</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in latest %}
+      <tr>
+        <td>
+          {{ entry.target.product.name }}
+          <a href="{% url 'database:priceHistory' entry.target.product.id %}">
+            <svg class="icon icon--size-small">
+              <use href="{% static 'feather-sprite.svg' %}#link" />
+            </svg>
+          </a>
+          <a
+            href="{{ entry.target.product.get_cheapest.target.url }}"
+            target="__blank"
+          >
+            <svg class="icon icon--size-small">
+              <use href="{% static 'feather-sprite.svg' %}#external-link" />
+            </svg>
+          </a>
+        </td>
+        <td>{{ entry.price }}</td>
+        <td>{{ entry.target.product.get_min_max_prices.price__min }}</td>
+        <td>{{ entry.target.product.get_min_max_prices.price__max }}</td>
+        <td>{{ entry.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %} {% if inactive %}
+  <h2>Recent abnormal targets</h2>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Product</th>
+        <th scope="col">Store name</th>
+        <th scope="col">Status</th>
+        <th scope="col">Checked at</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in inactive %}
+      <tr>
+        <td>
+          {{ entry.product.name }}
+          <a href="{% url 'database:priceHistory' entry.product.id %}">
+            <svg class="icon icon--size-small">
+              <use href="{% static 'feather-sprite.svg' %}#link" />
+            </svg>
+          </a>
+          <a href="{{ entry.url }}" target="__blank">
+            <svg class="icon icon--size-small">
+              <use href="{% static 'feather-sprite.svg' %}#external-link" />
+            </svg>
+          </a>
+        </td>
+        <td>{{ entry.get_store_name_from_url }}</td>
+        <td>{{ entry.get_recent_price_history.get_verbose_status }}</td>
+        <td>{{ entry.get_recent_price_history.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</main>
+{% endblock %}

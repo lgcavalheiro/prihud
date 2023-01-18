@@ -2,6 +2,7 @@
 mongoData
 postgresData
 geckodriver*
+migrations/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

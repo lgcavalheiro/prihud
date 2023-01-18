@@ -1,0 +1,58 @@
+{% extends 'base.html' %} {% block content %}
+<main class="container">
+  {% if datasets %}
+  <h3>{{ product_name }}</h3>
+  <div id="container">
+    <canvas id="history-chart"></canvas>
+  </div>
+  <br />
+  <details>
+    <summary>Go to product page</summary>
+    <ul>
+      {% for ref in target_refs %}
+      <li>
+        <a href="{{ ref.url }}" target="__blank"
+          >{% firstof ref.alias ref.url %}</a
+        >
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% else %}
+  <h3>No price history found for this product</h3>
+  {% endif %}
+</main>
+
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.1.2/chart.umd.js"
+  integrity="sha512-t41WshQCxr9T3SWH3DBZoDnAT9gfVLtQS+NKO60fdAwScoB37rXtdxT/oKe986G0BFnP4mtGzXxuYpHrMoMJLA=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+></script>
+<script>
+  var config = {
+    type: "line",
+    data: {
+      labels: {{ labels|safe }},
+      datasets: {{ datasets|safe }}
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+            ticks: {
+              callback: function(value, index, values) {
+                return value.toLocaleString("pt-BR",{style:"currency", currency:"BRL"});
+            }
+          }
+        },
+      }
+    }
+  };
+
+  window.onload = function () {
+    var ctx = document.getElementById("history-chart").getContext("2d");
+    if(ctx) window.historyChart = new Chart(ctx, config);
+  };
+</script>
+{% endblock %}

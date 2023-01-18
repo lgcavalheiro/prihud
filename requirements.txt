@@ -1,6 +1,9 @@
 autopep8
 pylint
-beautifulsoup4
 selenium
-pymongo
-psycopg2-binary
+Django
+apprise
+webdriver-manager
+django-environ
+coverage
+extruct
