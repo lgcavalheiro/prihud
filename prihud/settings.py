@@ -133,4 +133,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
 
+DRIVER_PATH = env('DRIVER_PATH', default=None)
+
 DISCORD_HOOK = env('DISCORD_HOOK')

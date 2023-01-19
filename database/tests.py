@@ -161,7 +161,8 @@ class ScrapeCommandTest(TestCase):
         target = create_target(
             url="https://pt.aliexpress.com/item/4000440445220.html")
         out = run_scrape_command()
-        self.assertIn(target.url, out.getvalue())
+        self.assertIn(
+            "Scrape job finished with 1 out of 1 successes", out.getvalue())
 
     def test_run_scrape_timeout(self):
         create_target(url="https://searx.space")
