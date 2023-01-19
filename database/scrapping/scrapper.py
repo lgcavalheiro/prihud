@@ -49,6 +49,9 @@ class Scrapper():
         price = None
         status = 'S'
 
+        if (self.driver.current_url != target.url):
+            self.go_to_page(target.url)
+
         self.find_element_or_fail(target)
         price = self.get_price_from_page(target)
 
