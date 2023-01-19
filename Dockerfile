@@ -8,6 +8,8 @@ COPY requirements.txt ./
 COPY .env ./
 COPY manage.py ./
 COPY prihud ./prihud
+COPY static ./static
+COPY templates ./templates
 COPY database ./database
 COPY db.sqlite3 ./
 # deps install
