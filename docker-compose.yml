@@ -4,6 +4,20 @@ services:
   app:
     build:
       context: .
+      target: "dbu"
+    expose:
+      - 8000
     volumes:
       - ./db.sqlite3:/app/db.sqlite3
-    network_mode: host
+      - static_volume:/app/staticfiles
+  web:
+    image: nginx
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - static_volume:/app/staticfiles
+    ports:
+      - 80:80
+    depends_on:
+      - app
+volumes:
+  static_volume:
