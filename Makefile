@@ -18,7 +18,7 @@ dev-serve: present
 	gunicorn -c gunicorn/dev.py
 
 dev-docker-build: present
-	docker build --no-cache --force-rm . -t ${PROJECT}_dev --target dev
+	docker build --no-cache --force-rm . -t ${PROJECT}_dev --build-arg DJANGO_ENV=dev --target dockerized
 
 dev-docker-run: dev-check-image
 	docker run --rm -v ${PWD}/${DB}:${APP_DIR}/${DB}:delegated -p ${PORT}:${PORT} --name ${PROJECT} ${PROJECT}_dev:latest
@@ -27,9 +27,9 @@ dev-check-image:
 	if [ $(shell docker images -q ${PROJECT}_dev | wc -l) = 0 ]; then make dev-docker-build; fi
 
 prod-docker-build: present
-	docker build --no-cache --force-rm . -t ${PROJECT}_prod --target prod
+	docker build --no-cache --force-rm . -t ${PROJECT}_prod --build-arg DJANGO_ENV=prod --target dockerized
 
-prod-docker-run: dev-check-image
+prod-docker-run: prod-check-image
 	docker run --rm -v ${PWD}/${DB}:${APP_DIR}/${DB}:delegated -p ${PORT}:${PORT} --name ${PROJECT} ${PROJECT}_prod:latest
 
 prod-check-image:
