@@ -1,4 +1,4 @@
-wsgi_app = "project.wsgi:application"
+wsgi_app = "prihud.wsgi:application"
 loglevel = "info"
 workers = 2
 bind = "0.0.0.0:8000"

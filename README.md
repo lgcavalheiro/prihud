@@ -7,7 +7,7 @@ While it is true that many companies that provide price tracking exist today, pr
 ## Launching the project
 1. Clone this repository
 2. `cd prihud`
-3. Create a new file name `.env` (you can use `.env.template` as a reference) and fill out all variables 
+3. Create a new file named `.env` (you can use `.env.template` as a reference) and fill out all variables 
 
 Depending on how you want to run the project, you will need to run different commands, the most simple and straight forward way is to do it via docker and docker-compose, which should be installed first, just run the command `make dbu-dev`, once the command finishes, prihud should be available on `http://localhost:80`. The other methods are as follows:
 
