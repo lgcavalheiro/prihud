@@ -29,7 +29,13 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False if env('ENV', default='dev') == 'prod' else True
 
-ALLOWED_HOSTS = ['*']
+CSRF_COOKIE_SECURE = True if env('ENV', default='dev') == 'prod' else False
+
+SESSION_COOKIE_SECURE = True if env('ENV', default='dev') == 'prod' else False
+
+SECURE_SSL_REDIRECT = True if env('ENV', default='dev') == 'prod' else False
+
+ALLOWED_HOSTS = env('ALLOWED_HOSTS', default=[])
 
 
 # Application definition
@@ -121,6 +127,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",

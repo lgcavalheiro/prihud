@@ -7,3 +7,5 @@ webdriver-manager
 django-environ
 coverage
 extruct
+gunicorn
+
