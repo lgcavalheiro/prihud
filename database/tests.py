@@ -150,6 +150,19 @@ class PriceHistoryViewTest(TestCase):
         self.assertGreater(len(response.context['datasets']), 0)
 
 
+@tag('view')
+class DownloadDatabaseViewTest(TestCase):
+    def setUp(self):
+        setup_login(self)
+
+    def test_show_download_link(self):
+        do_login(self)
+        url = reverse('database:downloadDatabase')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Download database file")
+
+
 @tag('command')
 class ScrapeCommandTest(TestCase):
     def test_run_scrape_no_targets(self):

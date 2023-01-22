@@ -1,10 +1,13 @@
-from .models import PriceHistory, Target, Product, Category
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
+from django.core.files import File
+from django.http.response import HttpResponse
 from datetime import datetime
 from .utils import gen_color
+from .models import PriceHistory, Target, Product, Category
 
 
 class CategoryListView(LoginRequiredMixin, ListView):
@@ -62,4 +65,23 @@ def PriceHistoryView(request, product_id):
         'datasets': list(partial_data.values()),
         'product_name': targets[0].product.name,
         'target_refs': [{'url': target.url, 'alias': target.alias} for target in targets]
+    })
+
+
+@login_required
+def DownloadDatabaseView(request):
+    db_path = settings.DATABASES['default']['NAME']
+    do_download = request.GET.get('do_download', False)
+
+    if do_download and db_path:
+        with File(open(db_path, "rb")) as db_file:
+            new_name = f"{datetime.now()}{db_path}"
+            response = HttpResponse(db_file, content_type='application/x-sqlite3')
+            response['Content-Disposition'] = 'attachment; filename=%s' % new_name
+            response['Content-Length'] = db_file.size
+
+        return response
+
+    return render(request, 'database/databaseDownload.html', {
+        'db_path': db_path
     })

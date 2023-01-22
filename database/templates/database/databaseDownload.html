@@ -1,0 +1,9 @@
+{% extends 'base.html' %} {% block content %}
+<main class="container">
+  {% if not db_path %}
+  <h1>Database file not found!</h1>
+  {% else %}
+  <a href="{% url 'database:downloadDatabase' %}?do_download=True" target="__blank">Download database file</a>
+  {% endif %}
+</main>
+{% endblock %}
