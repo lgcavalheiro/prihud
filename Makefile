@@ -39,10 +39,10 @@ docker-stop:
 	docker stop ${PROJECT}
 
 dbu-dev: present
-	docker-compose down && docker-compose build --build-arg DBU_ENV=dev && docker-compose up
+	docker-compose down && docker-compose build --build-arg DBU_ENV=dev && docker-compose up -d
 
 dbu-prod: present
-	docker-compose down && docker-compose build --build-arg DBU_ENV=prod && docker-compose up
+	docker-compose down && docker-compose build --build-arg DBU_ENV=prod && docker-compose up -d
 
 test:
 	export TESTING=True && coverage run --source="." manage.py test ${ARGS} && coverage html

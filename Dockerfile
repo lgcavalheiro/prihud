@@ -2,7 +2,7 @@ FROM python:3.10-alpine AS base
     WORKDIR /app
     EXPOSE 8000
 
-    COPY root /var/spool/cron/crontabs/root
+    COPY cron /var/spool/cron/crontabs/app
     COPY requirements.txt ./
     COPY .env ./
     COPY manage.py ./
@@ -12,12 +12,13 @@ FROM python:3.10-alpine AS base
     COPY db.sqlite3 ./
     COPY entrypoint.sh ./
     
-    RUN chmod +x ./entrypoint.sh
     RUN apk update && \
-        apk add --no-cache firefox && \
+        apk add --no-cache firefox busybox-suid su-exec && \
+        chmod u+s /sbin/su-exec && \
         pip install --upgrade pip && \
-        pip3 install --no-cache-dir -r requirements.txt 
-    RUN addgroup -S app && adduser -S app -G app
+        pip3 install --no-cache-dir -r requirements.txt && \
+        chmod +x ./entrypoint.sh && \
+        addgroup -S app && adduser -S app -G app
 
 FROM base AS dockerized
     ARG DJANGO_ENV=dev
