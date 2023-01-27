@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.test.client import Client
 from django.core.management import call_command
 from django.test import tag
+from unittest import skip
 from io import StringIO
 from .utils import gen_color, rand
 from .models import Category, Product, Target, PriceHistory
@@ -177,6 +178,7 @@ class ScrapeCommandTest(TestCase):
         self.assertIn(
             "Scrape job finished with 1 out of 1 successes", out.getvalue())
 
+    @skip("2023-01-26: Since direct page scraping is deactivated for the moment, there is no reason to run this test")
     def test_run_scrape_timeout(self):
         create_target(url="https://searx.space")
         out = run_scrape_command()

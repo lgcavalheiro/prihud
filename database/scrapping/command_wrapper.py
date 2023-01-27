@@ -52,11 +52,13 @@ class CommandWrapper():
             self.save_price_history(target, price, status)
             return
 
-        (price, status) = self.scrapper.scrape_target(target)
-        if (price):
-            print("Using page price")
-            self.save_price_history(target, price, status)
-            return
+        # NOTE: Disabled direct page scraping for the time being, as per 404 page case found in:
+        # https://www.pichau.com.br/placa-de-video-galax-geforce-rtx-3060-1-click-oc-8gb-gddr6-128-bit-36nsl8md6occ
+        # (price, status) = self.scrapper.scrape_target(target)
+        # if (price):
+        #     print("Using page price")
+        #     self.save_price_history(target, price, status)
+        #     return
 
         raise Exception("Price not found!")
 
