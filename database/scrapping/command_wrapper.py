@@ -10,6 +10,7 @@ from .metadata_scrapper import MetadataScrapper
 from .scrapper import Scrapper
 from database.models import PriceHistory
 from prihud.settings import DRIVER_PATH
+from database.scrapping.exceptions import PriceNotFoundException
 
 
 class CommandWrapper():
@@ -60,7 +61,7 @@ class CommandWrapper():
         #     self.save_price_history(target, price, status)
         #     return
 
-        raise Exception("Price not found!")
+        raise PriceNotFoundException()
 
     def save_price_history(self, target, price, status):
         print(f"{target.url} --- {price} --- {status}")

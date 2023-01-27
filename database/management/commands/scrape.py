@@ -6,6 +6,7 @@ from prihud.logger import AppriseLogger
 from database.scrapping.command_wrapper import CommandWrapper
 from datetime import datetime
 from database.test_utils import TestLogger
+from database.scrapping.exceptions import PriceNotFoundException
 
 CACHE_URL = "https://webcache.googleusercontent.com/search?q=cache:"
 
@@ -32,10 +33,15 @@ class Command(BaseCommand):
                 target, forced_url=f'{CACHE_URL}{target.url}')
             self.successes += 1
         except TimeoutException as e:
-            err_msg = f"Cache target timed out {target.alias or ''} {target.url} trying cache"
+            err_msg = f"Cache target timed out {target.alias or ''} {target.url}"
             self.stderr.write(err_msg)
             self.logger.fail(
                 err_msg, f"Cache failed {target.alias or ''} {target.url}")
+        except PriceNotFoundException as e:
+            err_msg = f"Cache price not found {target.alias or ''} {target.url}"
+            self.stderr.write(err_msg)
+            self.logger.fail(
+                err_msg, f"Cache price not found {target.alias or ''} {target.url}")
         except Exception as e:
             err_msg = f"Cache target failed with {e}"
             self.stderr.write(err_msg)
@@ -57,6 +63,12 @@ class Command(BaseCommand):
                 self.stderr.write(err_msg)
                 self.logger.fail(
                     err_msg, f"Target failed {target.alias or ''} {target.url}")
+                self.handle_cached(target)
+            except PriceNotFoundException as e:
+                err_msg = f"Price not found {target.alias or ''} {target.url} trying cache"
+                self.stderr.write(err_msg)
+                self.logger.fail(
+                    err_msg, f"Price not found {target.alias or ''} {target.url}")
                 self.handle_cached(target)
             except Exception as e:
                 err_msg = f"Scraping target failed with {e}"
