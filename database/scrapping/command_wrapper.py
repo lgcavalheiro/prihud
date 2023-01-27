@@ -39,8 +39,10 @@ class CommandWrapper():
         self.metadata_scrapper = None
         self.scrapper = None
 
-    def scrape(self, target):
-        self.scrapper.go_to_page(target.url)
+    def scrape(self, target, forced_url=None):
+        url = forced_url if forced_url else target.url
+
+        self.scrapper.go_to_page(url)
         (page_source, current_url) = self.scrapper.get_page_info()
 
         (price, status) = self.metadata_scrapper.get_price_from_metadata(
