@@ -13,7 +13,7 @@ FROM python:3.10-alpine AS base
     COPY entrypoint.sh ./
     
     RUN apk update && \
-        apk add --no-cache chromium chromium-chromedriver busybox-suid su-exec && \
+        apk add --no-cache busybox-suid su-exec && \
         chmod u+s /sbin/su-exec && \
         pip install --upgrade pip && \
         pip3 install --no-cache-dir -r requirements.txt && \

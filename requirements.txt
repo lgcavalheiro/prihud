@@ -6,4 +6,3 @@ django-environ
 coverage
 extruct
 gunicorn
-seleniumbase

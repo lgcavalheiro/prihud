@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from database.scraping.impl.chromium_scraper import ChromiumScraper
+from database.scraping.impl.flaresolverr_scraper import FlaresolverrScraper
 from database.scraping.impl.price_getter import PriceGetter
 from database.models import Target
 
@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.scraper = ChromiumScraper()
+        self.scraper = FlaresolverrScraper()
         self.price_getter = PriceGetter()
 
     def __del__(self):
