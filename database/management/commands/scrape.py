@@ -1,81 +1,29 @@
-import os
 from django.core.management.base import BaseCommand
-from database.models import Target, PriceHistory, Product
-from selenium.common.exceptions import TimeoutException
-from prihud.logger import AppriseLogger
-from database.scrapping.command_wrapper import CommandWrapper
-from datetime import datetime
-from database.test_utils import TestLogger
-from database.scrapping.exceptions import PriceNotFoundException
-
-CACHE_URL = "https://webcache.googleusercontent.com/search?q=cache:"
+from database.scraping.impl.chromium_scraper import ChromiumScraper
+from database.scraping.impl.price_getter import PriceGetter
+from database.models import Target
 
 
 class Command(BaseCommand):
     help = 'Run scraper for fetching price data'
-    command_wrapper = None
-    logger = None
-    successes = 0
+    scraper = None
+    price_getter = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.logger = TestLogger(
-        ) if os.environ.get("TESTING") else AppriseLogger()
-        self.command_wrapper = CommandWrapper(self.logger)
+        self.scraper = ChromiumScraper()
+        self.price_getter = PriceGetter()
 
     def __del__(self):
-        self.logger = None
-        self.command_wrapper = None
+        self.scraper = None
 
-    def handle_cached(self, target):
-        try:
-            self.command_wrapper.scrape(
-                target, forced_url=f'{CACHE_URL}{target.url}')
-            self.successes += 1
-        except TimeoutException as e:
-            err_msg = f"Cache target timed out {target.alias or ''} {target.url}"
-            self.stderr.write(err_msg)
-            self.logger.fail(
-                err_msg, f"Cache failed {target.alias or ''} {target.url}")
-        except PriceNotFoundException as e:
-            err_msg = f"Cache price not found {target.alias or ''} {target.url}"
-            self.stderr.write(err_msg)
-            self.logger.fail(
-                err_msg, f"Cache price not found {target.alias or ''} {target.url}")
-        except Exception as e:
-            err_msg = f"Cache target failed with {e}"
-            self.stderr.write(err_msg)
-            self.logger.fail(
-                err_msg, f"Cache failed {target.alias or ''} {target.url}")
+    def scrape_target(self, target):
+        page = self.scraper.scrape(target.url)
+        price = self.price_getter.get_price(page, target.url)
+        print(f'Found price: {price} - {target.url}')
 
     def handle(self, *args, **options):
         targets = Target.objects.all()
-        start_msg = f'Starting scraping job with {len(targets)} targets'
-        self.stdout.write(start_msg)
-        self.logger.info(start_msg, f"Starting scrape job at {datetime.now()}")
 
         for target in targets:
-            try:
-                self.command_wrapper.scrape(target)
-                self.successes += 1
-            except TimeoutException as e:
-                err_msg = f"Target timed out {target.alias or ''} {target.url} trying cache"
-                self.stderr.write(err_msg)
-                self.logger.fail(
-                    err_msg, f"Target failed {target.alias or ''} {target.url}")
-                self.handle_cached(target)
-            except PriceNotFoundException as e:
-                err_msg = f"Price not found {target.alias or ''} {target.url} trying cache"
-                self.stderr.write(err_msg)
-                self.logger.fail(
-                    err_msg, f"Price not found {target.alias or ''} {target.url}")
-                self.handle_cached(target)
-            except Exception as e:
-                err_msg = f"Scraping target failed with {e}"
-                self.stderr.write(err_msg)
-                self.logger.fail(
-                    err_msg, f"Target failed {target.alias or ''} {target.url}")
-
-        end_msg = f'Scrape job finished with {self.successes} out of {len(targets)} successes'
-        self.stdout.write(end_msg)
-        self.logger.success(end_msg, f"Scrape job ended at {datetime.now()}")
+            self.scrape_target(target)

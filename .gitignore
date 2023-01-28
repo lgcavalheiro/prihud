@@ -1,8 +1,7 @@
 # Project Specific
 mongoData
-postgresData
-geckodriver*
 migrations/
+downloaded_files/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
