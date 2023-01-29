@@ -23,6 +23,7 @@ class PriceGetter(PriceGetterInterface):
             self.driver.quit()
 
     def get_price_from_metadata(self, page, base_url):
+        status = 'S'
         metadata = extruct.extract(page,
                                    base_url=base_url,
                                    uniform=True,
@@ -31,25 +32,28 @@ class PriceGetter(PriceGetterInterface):
                                              'opengraph'])
 
         if not metadata:
-            return None
+            return (None, None)
 
         for data in metadata['json-ld']:
             if data['@type'] == 'Product':
                 if data['offers']['availability'].split('/')[-1] not in self.availabilities:
-                    print('Not in stock')
+                    status = 'O'
                 price = data['offers']['price']
-                return price
+                return (price, status)
 
     def get_price_from_page(self, target):
+        status = 'S'
         try:
             price_tag = self.driver.find_element(
                 by=self.selector_dict[target.selector_type], value=target.selector)
-            return price_tag.text.replace('R$', '').replace('.', '').replace(',', '.').strip()
+            price = price_tag.text.replace('R$', '').replace(
+                '.', '').replace(',', '.').strip()
+            return (price, status)
         except:
-            return None
+            return (None, None)
 
     def get_price(self, page, target):
-        price = self.get_price_from_metadata(page, target.url)
-        if price:
-            return price
+        (price, status) = self.get_price_from_metadata(page, target.url)
+        if price and status:
+            return (price, status)
         return self.get_price_from_page(target)

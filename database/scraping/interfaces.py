@@ -19,3 +19,11 @@ class PriceGetterInterface(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_price(self, page):
         return NotImplementedError
+
+    @abc.abstractmethod
+    def get_price_from_metadata(self, page, base_url):
+        return NotImplementedError
+
+    @abc.abstractmethod
+    def get_price_from_page(self, target):
+        return NotImplementedError

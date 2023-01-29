@@ -169,25 +169,19 @@ class ScrapeCommandTest(TestCase):
     def test_run_scrape_no_targets(self):
         out = run_scrape_command()
         self.assertIn(
-            "Scrape job finished with 0 out of 0 successes", out.getvalue())
+            "Finished scraping job with 0/0 successes", out.getvalue())
 
     def test_run_scrape(self):
         target = create_target(
             url="https://pt.aliexpress.com/item/4000440445220.html")
         out = run_scrape_command()
         self.assertIn(
-            "Scrape job finished with 1 out of 1 successes", out.getvalue())
-
-    @skip("2023-01-26: Since direct page scraping is deactivated for the moment, there is no reason to run this test")
-    def test_run_scrape_timeout(self):
-        create_target(url="https://searx.space")
-        out = run_scrape_command()
-        self.assertIn("Target timed out", out.getvalue())
+            "Finished scraping job with 1/1 successes", out.getvalue())
 
     def test_run_scrape_failed(self):
         create_target()
         out = run_scrape_command()
-        self.assertIn("target failed", out.getvalue())
+        self.assertIn("Target failed", out.getvalue())
 
 
 @tag('model')
