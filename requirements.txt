@@ -6,3 +6,5 @@ django-environ
 coverage
 extruct
 gunicorn
+webdriver-manager
+selenium
