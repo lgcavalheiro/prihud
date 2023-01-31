@@ -59,18 +59,23 @@ class Command(BaseCommand):
             price_history.save()
 
     def scrape_target(self, target):
-        page = self.scraper.scrape(target.url)
-        (price, status) = self.price_getter.get_price(page, target)
-        if price:
-            self.log_message(f'Found price: {price} - {status} - {target.url}')
+        def execute_strategy(self, target, use_cache=False):
+            page = self.scraper.scrape(target.url, use_cache=use_cache)
+            (price, status) = self.price_getter.get_price(page, target)
             return (price, status)
 
-        page = self.scraper.scrape(target.url, use_cache=True)
-        (price, status) = self.price_getter.get_price(page, target)
-        if price:
-            self.log_message(
-                f'Found cached price: {price} - {status} - {target.url}')
-            return (price, status)
+        strategies = {
+            'standard': {'use_cache': False},
+            'cache_approach': {'use_cache': True},
+        }
+
+        for (key, value) in strategies.items():
+            (price, status) = execute_strategy(
+                self, target, use_cache=value['use_cache'])
+            if price:
+                self.log_message(
+                    f"Strategy [{key}] found price: {price} - {status} - {target.url}")
+                return (price, status)
 
         raise PriceNotFoundException
 

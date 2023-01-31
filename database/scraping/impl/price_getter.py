@@ -43,14 +43,12 @@ class PriceGetter(PriceGetterInterface):
 
     def get_price_from_page(self, target):
         status = 'S'
-        try:
-            price_tag = self.driver.find_element(
-                by=self.selector_dict[target.selector_type], value=target.selector)
-            price = price_tag.text.replace('R$', '').replace(
-                '.', '').replace(',', '.').strip()
-            return (price, status)
-        except:
-            return (None, None)
+        price_tag = self.driver.find_element(
+            by=self.selector_dict[target.selector_type], value=target.selector)
+        price = price_tag.text.replace('R$', '').replace(
+            '.', '').replace(',', '.').strip()
+        return (price, status)
+        
 
     def get_price(self, page, target):
         (price, status) = self.get_price_from_metadata(page, target.url)
