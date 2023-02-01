@@ -69,9 +69,14 @@ class Command(BaseCommand):
 
     def scrape_target(self, target):
         def execute_strategy(self, target, use_cache=False):
-            page = self.scraper.scrape(target.url, use_cache=use_cache)
-            (price, status) = self.price_getter.get_price(page, target)
-            return (price, status)
+            try:
+                page = self.scraper.scrape(target.url, use_cache=use_cache)
+                (price, status) = self.price_getter.get_price(page, target)
+                return (price, status)
+            except Exception as e:
+                self.log_message(
+                    f'Target failed, trying next strategy {target.alias if target.alias else target.url}: {e}')
+                return ("ERROR", target.Statuses.UNDEFINED)
 
         strategies = {
             'standard': {'use_cache': False},
@@ -81,7 +86,7 @@ class Command(BaseCommand):
         for (key, value) in strategies.items():
             (price, status) = execute_strategy(
                 self, target, use_cache=value['use_cache'])
-            if price:
+            if price != "ERROR":
                 self.log_message(
                     f"Strategy [{key}] found price: {price} - {status} - {target.url}")
                 return (price, status)
