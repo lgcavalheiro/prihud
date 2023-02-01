@@ -32,7 +32,7 @@ def create_target(url=None):
 
 
 def create_price_history():
-    return PriceHistory.objects.create(price=2.5, status='S', target=create_target())
+    return PriceHistory.objects.create(price=2.5, target=create_target())
 
 
 def run_scrape_command():
@@ -257,4 +257,4 @@ class PriceHistoryModelTest(TestCase):
 
     def test_can_str(self):
         self.assertEqual(
-            f'{self.history.price} - {self.history.target} - {self.history.status} - {self.history.created_at}', self.history.__str__())
+            f'{self.history.price} - {self.history.target} - {self.history.created_at}', self.history.__str__())

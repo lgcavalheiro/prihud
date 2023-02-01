@@ -2,6 +2,7 @@ from django.utils.timezone import now
 from django.db import models
 from django.urls import reverse
 from django.db.models import Min, Max
+from django.utils.translation import gettext_lazy as _
 from datetime import datetime
 
 
@@ -37,10 +38,17 @@ class Product(models.Model):
 
 
 class Target(models.Model):
+    class Statuses(models.TextChoices):
+        SUCCESS = 'S', _('SUCCESS')
+        OUT_OF_STOCK = 'O', _('OUT OF STOCK')
+        UNDEFINED = 'u', _('UNDEFINED STATUS')
+
     alias = models.CharField(max_length=128, null=True)
     url = models.CharField(max_length=256)
     selector_type = models.CharField(max_length=8)
     selector = models.CharField(max_length=256)
+    status = models.CharField(
+        max_length=1, null=True, choices=Statuses.choices, default=Statuses.SUCCESS)
     product = models.ForeignKey(
         Product, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField('created_at', default=now)
@@ -60,24 +68,14 @@ class Target(models.Model):
         return PriceHistory.objects.filter(target_id=self.id).order_by('-created_at').first()
 
     def is_available(self):
-        return self.get_recent_price_history().status == 'S'
+        return self.status == self.Statuses.SUCCESS
 
 
 class PriceHistory(models.Model):
-    STATUSES = {
-        'S': 'Success',
-        'O': 'Out of stock',
-        'U': 'Undefined status'
-    }
-
     price = models.FloatField()
-    status = models.CharField(max_length=1)
     target = models.ForeignKey(Target, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField('created_at', default=now)
     updated_at = models.DateTimeField('updated_at', default=now)
 
     def __str__(self):
-        return f'{self.price} - {self.target} - {self.status} - {self.created_at}'
-
-    def get_verbose_status(self):
-        return self.STATUSES.get(self.status, "Not mapped")
+        return f'{self.price} - {self.target} - {self.created_at}'

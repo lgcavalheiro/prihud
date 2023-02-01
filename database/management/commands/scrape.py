@@ -51,11 +51,20 @@ class Command(BaseCommand):
             self.logger.info(msg)
             self.stdout.write(msg)
 
+    def save_target_status(self, target, status):
+        target.status = status
+        target.save()
+
     def save_price_history(self, target, price, status):
-        price_history = PriceHistory(target=target, price=price, status=status)
         if (os.environ.get("TESTING")):
             self.log_message("Not saving due to testing environment")
-        else:
+            return
+
+        if target.status != status:
+            self.save_target_status(target, status)
+
+        if status == target.Statuses.SUCCESS:
+            price_history = PriceHistory(target=target, price=price)
             price_history.save()
 
     def scrape_target(self, target):
@@ -92,8 +101,10 @@ class Command(BaseCommand):
             except PriceNotFoundException:
                 self.log_message(
                     f'Price not found: {target.url}', is_error=True)
+                self.save_target_status(target, target.Statuses.UNDEFINED)
             except Exception as e:
                 self.log_message(f'Target failed: {e}', is_error=True)
+                self.save_target_status(target, target.Statuses.UNDEFINED)
 
         self.log_message(
             f'Finished scraping job with {self.successes}/{len(targets)} successes at {datetime.now()}')
