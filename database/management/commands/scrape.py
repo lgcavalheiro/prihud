@@ -10,7 +10,7 @@ from database.scraping.exceptions import PriceNotFoundException
 from database.models import Target, PriceHistory
 from prihud.logger import AppriseLogger
 from database.test_utils import TestLogger
-from prihud.settings import DRIVER_PATH
+from prihud.settings import DRIVER_PATH, TESTING
 
 
 class Command(BaseCommand):
@@ -29,13 +29,11 @@ class Command(BaseCommand):
         options.set_preference(
             'dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
-        if (DRIVER_PATH and find_executable(DRIVER_PATH)):
-            executable_path = DRIVER_PATH
-        else:
-            executable_path = GeckoDriverManager().install()
+        executable_path = DRIVER_PATH if (DRIVER_PATH and find_executable(
+            DRIVER_PATH)) else GeckoDriverManager().install()
         driver = Firefox(options=options, executable_path=executable_path)
 
-        self.logger = TestLogger() if os.environ.get("TESTING") else AppriseLogger()
+        self.logger = TestLogger() if TESTING else AppriseLogger()
         self.price_getter = PriceGetter(driver)
         self.scraper = DriverScraper(driver)
 
@@ -44,19 +42,26 @@ class Command(BaseCommand):
         self.driver = None
 
     def log_message(self, msg, is_error=False):
-        if is_error:
-            self.logger.fail(msg)
-            self.stderr.write(msg)
-        else:
-            self.logger.info(msg)
-            self.stdout.write(msg)
+        # should use logger or terminal
+        log_key = 'F' if TESTING else 'T'
+        # is it an error message or not
+        log_key += 'F' if not is_error else 'T'
+
+        log_literals = {
+            "TT": lambda msg: self.logger.fail(msg),
+            "TF": lambda msg: self.logger.info(msg),
+            "FT": lambda msg: self.stderr.write(msg),
+            "FF": lambda msg: self.stdout.write(msg)
+        }
+
+        log_literals.get(log_key)(msg)
 
     def save_target_status(self, target, status):
         target.status = status
         target.save()
 
     def save_price_history(self, target, price, status):
-        if (os.environ.get("TESTING")):
+        if TESTING:
             self.log_message("Not saving due to testing environment")
             return
 
@@ -88,7 +93,7 @@ class Command(BaseCommand):
                 self, target, use_cache=value['use_cache'])
             if price != "ERROR":
                 self.log_message(
-                    f"Strategy [{key}] found price: {price} - {status} - {target.url}")
+                    f"Strategy [{key}] found price: {price} - {dict(target.Statuses.choices).get(status, 'UNMAPPED STATUS')} - {target.url}")
                 return (price, status)
 
         raise PriceNotFoundException
@@ -108,7 +113,8 @@ class Command(BaseCommand):
                     f'Price not found: {target.url}', is_error=True)
                 self.save_target_status(target, target.Statuses.UNDEFINED)
             except Exception as e:
-                self.log_message(f'Target failed: {e}', is_error=True)
+                self.log_message(
+                    f'Target failed {target.url}: {e}', is_error=True)
                 self.save_target_status(target, target.Statuses.UNDEFINED)
 
         self.log_message(

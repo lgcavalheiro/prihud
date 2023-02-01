@@ -144,3 +144,5 @@ LOGIN_URL = 'login'
 DRIVER_PATH = env('DRIVER_PATH', default=None)
 
 DISCORD_HOOK = env('DISCORD_HOOK')
+
+TESTING = True if os.environ.get('TESTING') == "True" else False
