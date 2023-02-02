@@ -98,8 +98,18 @@ class Command(BaseCommand):
 
         raise PriceNotFoundException
 
+    def add_arguments(self, parser):
+        parser.add_argument('-f', type=str, dest='frequency',
+                            help='Defines the target frequency to scrape')
+
     def handle(self, *args, **options):
-        targets = Target.objects.all()
+        targets = Target.objects.filter(frequency=options["frequency"]).all()
+
+        if len(targets) == 0:
+            self.log_message(
+                f"Found no targets for this scraping job: [{dict(Target.Frequencies.choices).get(options['frequency'], 'UNMAPPED FREQUENCY')}]")
+            return
+
         self.log_message(
             f'Starting scraping job with {len(targets)} targets at {datetime.now()}')
 

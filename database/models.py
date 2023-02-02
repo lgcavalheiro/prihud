@@ -41,7 +41,13 @@ class Target(models.Model):
     class Statuses(models.TextChoices):
         SUCCESS = 'S', _('SUCCESS')
         OUT_OF_STOCK = 'O', _('OUT OF STOCK')
-        UNDEFINED = 'u', _('UNDEFINED STATUS')
+        UNDEFINED = 'U', _('UNDEFINED STATUS')
+
+    class Frequencies(models.TextChoices):
+        FOUR_TIMES = 'F', _('Four times a day')
+        TWO_TIMES = 'T', _('Twice a day')
+        DAILY = 'D', _('Daily')
+        WEEKLY = 'W', _('Weekly')
 
     alias = models.CharField(max_length=128, null=True)
     url = models.CharField(max_length=256)
@@ -49,6 +55,8 @@ class Target(models.Model):
     selector = models.CharField(max_length=256)
     status = models.CharField(
         max_length=1, null=True, choices=Statuses.choices, default=Statuses.SUCCESS)
+    frequency = models.CharField(
+        max_length=1, choices=Frequencies.choices, default=Frequencies.DAILY)
     product = models.ForeignKey(
         Product, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField('created_at', default=now)

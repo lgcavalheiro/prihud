@@ -18,7 +18,7 @@ dev-serve: present
 	gunicorn -c gunicorn/dev.py
 
 dev-docker-build: present
-	docker build --no-cache --force-rm . -t ${PROJECT}_dev --build-arg DJANGO_ENV=dev --target dockerized
+	docker build --no-cache --force-rm . -t ${PROJECT}_dev --build-arg DJANGO_ENV=dev --build-arg TZ=America/Sao_Paulo --target dockerized
 
 dev-docker-run: dev-check-image
 	docker run --rm -v ${PWD}/${DB}:${APP_DIR}/${DB}:delegated -p ${PORT}:${PORT} --name ${PROJECT} ${PROJECT}_dev:latest
@@ -27,7 +27,7 @@ dev-check-image:
 	if [ $(shell docker images -q ${PROJECT}_dev | wc -l) = 0 ]; then make dev-docker-build; fi
 
 prod-docker-build: present
-	docker build --no-cache --force-rm . -t ${PROJECT}_prod --build-arg DJANGO_ENV=prod --target dockerized
+	docker build --no-cache --force-rm . -t ${PROJECT}_prod --build-arg DJANGO_ENV=prod --build-arg TZ=America/Sao_Paulo --target dockerized
 
 prod-docker-run: prod-check-image
 	docker run --rm -v ${PWD}/${DB}:${APP_DIR}/${DB}:delegated -p ${PORT}:${PORT} --name ${PROJECT} ${PROJECT}_prod:latest
@@ -39,10 +39,10 @@ docker-stop:
 	docker stop ${PROJECT}
 
 dbu-dev: present
-	docker-compose down && docker-compose build --build-arg DBU_ENV=dev && docker-compose up -d
+	docker-compose down && docker-compose build --build-arg DBU_ENV=dev --build-arg TZ=America/Sao_Paulo && docker-compose up -d
 
 dbu-prod: present
-	docker-compose down && docker-compose build --build-arg DBU_ENV=prod && docker-compose up -d
+	docker-compose down && docker-compose build --build-arg DBU_ENV=prod --build-arg TZ=America/Sao_Paulo && docker-compose up -d
 
 test:
 	export TESTING=True && coverage run --source="." manage.py test ${ARGS} && coverage html

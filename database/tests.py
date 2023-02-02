@@ -37,7 +37,7 @@ def create_price_history():
 
 def run_scrape_command():
     out = StringIO()
-    call_command('scrape', stdout=out, stderr=out)
+    call_command('scrape', f='D', stdout=out, stderr=out)
     return out
 
 
@@ -168,8 +168,7 @@ class DownloadDatabaseViewTest(TestCase):
 class ScrapeCommandTest(TestCase):
     def test_run_scrape_no_targets(self):
         out = run_scrape_command()
-        self.assertIn(
-            "Finished scraping job with 0/0 successes", out.getvalue())
+        self.assertIn("Found no targets", out.getvalue())
 
     def test_run_scrape(self):
         target = create_target(

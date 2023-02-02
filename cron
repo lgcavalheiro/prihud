@@ -1,1 +1,4 @@
-0 */6 * * * python /app/manage.py scrape
+0 */6 * * * python /app/manage.py scrape -f=F
+0 */12 * * * python /app/manage.py scrape -f=T
+0 3 */1 * * python /app/manage.py scrape -f=D
+0 3 * * 1 python /app/manage.py scrape -f=W
