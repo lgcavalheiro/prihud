@@ -43,7 +43,7 @@ class PriceGetter(PriceGetterInterface):
         status = 'S'
         price_tag = self.driver.find_element(
             by=target.selector_type, value=target.selector)
-        price = price_tag.text.replace('R$', '').replace(
+        price = price_tag.text.replace('R$', '').replace('\n', ',').replace(
             '.', '').replace(',', '.').strip()
         return (price, status)
 
