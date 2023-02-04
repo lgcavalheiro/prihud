@@ -1,18 +1,14 @@
 import extruct
-from selenium.webdriver.common.by import By
+from database.scraping.exceptions import PriceNotFoundException
 from database.scraping.interfaces import PriceGetterInterface
+
+NOT_FOUND_CONST = -1
 
 
 class PriceGetter(PriceGetterInterface):
     driver = None
     availabilities = ['InStock', 'PreOrder', 'PreSale',
                       'OnlineOnly', 'LimitedAvailability', 'InStoreOnly']
-    selector_dict = {
-        'css': By.CSS_SELECTOR,
-        'xpath': By.XPATH,
-        'tag': By.TAG_NAME,
-        'class': By.CLASS_NAME,
-    }
 
     def __init__(self, driver):
         super()
@@ -32,7 +28,7 @@ class PriceGetter(PriceGetterInterface):
                                              'opengraph'])
 
         if not metadata:
-            return (None, None)
+            return (NOT_FOUND_CONST, NOT_FOUND_CONST)
 
         for data in metadata['json-ld']:
             if data['@type'] == 'Product':
@@ -40,18 +36,24 @@ class PriceGetter(PriceGetterInterface):
                     status = 'O'
                 price = data['offers']['price']
                 return (price, status)
+        else:
+            return (NOT_FOUND_CONST, NOT_FOUND_CONST)
 
     def get_price_from_page(self, target):
         status = 'S'
         price_tag = self.driver.find_element(
-            by=self.selector_dict[target.selector_type], value=target.selector)
+            by=target.selector_type, value=target.selector)
         price = price_tag.text.replace('R$', '').replace(
             '.', '').replace(',', '.').strip()
         return (price, status)
-        
 
     def get_price(self, page, target):
         (price, status) = self.get_price_from_metadata(page, target.url)
-        if price and status:
+        if price != NOT_FOUND_CONST and status != NOT_FOUND_CONST:
             return (price, status)
-        return self.get_price_from_page(target)
+
+        (price, status) = self.get_price_from_page(target)
+        if price != NOT_FOUND_CONST and status != NOT_FOUND_CONST:
+            return (price, status)
+
+        raise PriceNotFoundException()

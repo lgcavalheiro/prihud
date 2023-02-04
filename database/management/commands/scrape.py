@@ -83,6 +83,7 @@ class Command(BaseCommand):
                     f'Target failed, trying next strategy {target.alias if target.alias else target.url}: {e}')
                 return ("ERROR", target.Statuses.UNDEFINED)
 
+        # lambda self, target: self.strategy(target)
         strategies = {
             'standard': {'use_cache': False},
             'cache_approach': {'use_cache': True},
@@ -102,8 +103,15 @@ class Command(BaseCommand):
         parser.add_argument('-f', type=str, dest='frequency',
                             help='Defines the target frequency to scrape')
 
+        parser.add_argument('-i', type=int, dest='ids', action="append",
+                            help="Defines only some targets to be scraped by their id")
+
     def handle(self, *args, **options):
-        targets = Target.objects.filter(frequency=options["frequency"]).all()
+        if (options['ids']):
+            targets = Target.objects.filter(pk__in=options['ids']).all()
+        else:
+            targets = Target.objects.filter(
+                frequency=options["frequency"]).all()
 
         if len(targets) == 0:
             self.log_message(

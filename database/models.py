@@ -3,6 +3,7 @@ from django.db import models
 from django.urls import reverse
 from django.db.models import Min, Max
 from django.utils.translation import gettext_lazy as _
+from selenium.webdriver.common.by import By
 from datetime import datetime
 
 
@@ -39,9 +40,9 @@ class Product(models.Model):
 
 class Target(models.Model):
     class Statuses(models.TextChoices):
-        SUCCESS = 'S', _('SUCCESS')
-        OUT_OF_STOCK = 'O', _('OUT OF STOCK')
-        UNDEFINED = 'U', _('UNDEFINED STATUS')
+        SUCCESS = 'S', _('Success')
+        OUT_OF_STOCK = 'O', _('Out of stock')
+        UNDEFINED = 'U', _('Undefined status')
 
     class Frequencies(models.TextChoices):
         FOUR_TIMES = 'F', _('Four times a day')
@@ -49,9 +50,16 @@ class Target(models.Model):
         DAILY = 'D', _('Daily')
         WEEKLY = 'W', _('Weekly')
 
+    class SelectorTypes(models.TextChoices):
+        CSS = By.CSS_SELECTOR
+        XPATH = By.XPATH
+        TAG = By.TAG_NAME
+        CLASS = By.CLASS_NAME
+
     alias = models.CharField(max_length=128, null=True)
     url = models.CharField(max_length=256)
-    selector_type = models.CharField(max_length=8)
+    selector_type = models.CharField(
+        max_length=16, choices=SelectorTypes.choices, default=SelectorTypes.CSS)
     selector = models.CharField(max_length=256)
     status = models.CharField(
         max_length=1, null=True, choices=Statuses.choices, default=Statuses.SUCCESS)

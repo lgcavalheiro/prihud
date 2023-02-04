@@ -16,7 +16,7 @@ class DriverScraper(ScraperInterface):
         if self.driver:
             self.driver.quit()
 
-    def scrape(self, url, use_cache = False):
+    def scrape(self, url, use_cache=False):
         if use_cache:
             url = f'{CACHE_URL}{url}'
         self.driver.get(url)
