@@ -1,81 +1,139 @@
 import os
 from django.core.management.base import BaseCommand
-from database.models import Target, PriceHistory, Product
-from selenium.common.exceptions import TimeoutException
-from prihud.logger import AppriseLogger
-from database.scrapping.command_wrapper import CommandWrapper
+from distutils.spawn import find_executable
+from selenium.webdriver import Firefox, FirefoxOptions
+from webdriver_manager.firefox import GeckoDriverManager
 from datetime import datetime
+from database.scraping.impl.driver_scraper import DriverScraper
+from database.scraping.impl.price_getter import PriceGetter
+from database.scraping.exceptions import PriceNotFoundException
+from database.models import Target, PriceHistory
+from prihud.logger import AppriseLogger
 from database.test_utils import TestLogger
-from database.scrapping.exceptions import PriceNotFoundException
-
-CACHE_URL = "https://webcache.googleusercontent.com/search?q=cache:"
+from prihud.settings import DRIVER_PATH, TESTING
 
 
 class Command(BaseCommand):
     help = 'Run scraper for fetching price data'
-    command_wrapper = None
+    price_getter = None
+    scraper = None
     logger = None
     successes = 0
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.logger = TestLogger(
-        ) if os.environ.get("TESTING") else AppriseLogger()
-        self.command_wrapper = CommandWrapper(self.logger)
+
+        options = FirefoxOptions()
+        options.add_argument('--headless')
+        options.set_preference('permissions.default.image', 2)
+        options.set_preference(
+            'dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+
+        executable_path = DRIVER_PATH if (DRIVER_PATH and find_executable(
+            DRIVER_PATH)) else GeckoDriverManager().install()
+        driver = Firefox(options=options, executable_path=executable_path)
+
+        self.logger = TestLogger() if TESTING else AppriseLogger()
+        self.price_getter = PriceGetter(driver)
+        self.scraper = DriverScraper(driver)
 
     def __del__(self):
-        self.logger = None
-        self.command_wrapper = None
+        self.price_getter = None
+        self.driver = None
 
-    def handle_cached(self, target):
-        try:
-            self.command_wrapper.scrape(
-                target, forced_url=f'{CACHE_URL}{target.url}')
-            self.successes += 1
-        except TimeoutException as e:
-            err_msg = f"Cache target timed out {target.alias or ''} {target.url}"
-            self.stderr.write(err_msg)
-            self.logger.fail(
-                err_msg, f"Cache failed {target.alias or ''} {target.url}")
-        except PriceNotFoundException as e:
-            err_msg = f"Cache price not found {target.alias or ''} {target.url}"
-            self.stderr.write(err_msg)
-            self.logger.fail(
-                err_msg, f"Cache price not found {target.alias or ''} {target.url}")
-        except Exception as e:
-            err_msg = f"Cache target failed with {e}"
-            self.stderr.write(err_msg)
-            self.logger.fail(
-                err_msg, f"Cache failed {target.alias or ''} {target.url}")
+    def log_message(self, msg, is_error=False):
+        # should use logger or terminal
+        log_key = 'F' if TESTING else 'T'
+        # is it an error message or not
+        log_key += 'F' if not is_error else 'T'
+
+        log_literals = {
+            "TT": lambda msg: self.logger.fail(msg),
+            "TF": lambda msg: self.logger.info(msg),
+            "FT": lambda msg: self.stderr.write(msg),
+            "FF": lambda msg: self.stdout.write(msg)
+        }
+
+        log_literals.get(log_key)(msg)
+
+    def save_target_status(self, target, status):
+        target.status = status
+        target.save()
+
+    def save_price_history(self, target, price, status):
+        if TESTING:
+            self.log_message("Not saving due to testing environment")
+            return
+
+        if target.status != status:
+            self.save_target_status(target, status)
+
+        if status == target.Statuses.SUCCESS:
+            price_history = PriceHistory(target=target, price=price)
+            price_history.save()
+
+    def scrape_target(self, target):
+        def execute_strategy(self, target, use_cache=False):
+            try:
+                page = self.scraper.scrape(target.url, use_cache=use_cache)
+                (price, status) = self.price_getter.get_price(page, target)
+                return (price, status)
+            except Exception as e:
+                self.log_message(
+                    f'Target failed, trying next strategy {target.alias if target.alias else target.url}: {e}')
+                return ("ERROR", target.Statuses.UNDEFINED)
+
+        # lambda self, target: self.strategy(target)
+        strategies = {
+            'standard': {'use_cache': False},
+            'cache_approach': {'use_cache': True},
+        }
+
+        for (key, value) in strategies.items():
+            (price, status) = execute_strategy(
+                self, target, use_cache=value['use_cache'])
+            if price != "ERROR":
+                self.log_message(
+                    f"Strategy [{key}] found price: {price} - {dict(target.Statuses.choices).get(status, 'UNMAPPED STATUS')} - {target.url}")
+                return (price, status)
+
+        raise PriceNotFoundException
+
+    def add_arguments(self, parser):
+        parser.add_argument('-f', type=str, dest='frequency',
+                            help='Defines the target frequency to scrape')
+
+        parser.add_argument('-i', type=int, dest='ids', action="append",
+                            help="Defines only some targets to be scraped by their id")
 
     def handle(self, *args, **options):
-        targets = Target.objects.all()
-        start_msg = f'Starting scraping job with {len(targets)} targets'
-        self.stdout.write(start_msg)
-        self.logger.info(start_msg, f"Starting scrape job at {datetime.now()}")
+        if (options['ids']):
+            targets = Target.objects.filter(pk__in=options['ids']).all()
+        else:
+            targets = Target.objects.filter(
+                frequency=options["frequency"]).all()
+
+        if len(targets) == 0:
+            self.log_message(
+                f"Found no targets for this scraping job: [{dict(Target.Frequencies.choices).get(options['frequency'], 'UNMAPPED FREQUENCY')}]")
+            return
+
+        self.log_message(
+            f'Starting scraping job with {len(targets)} targets at {datetime.now()}')
 
         for target in targets:
             try:
-                self.command_wrapper.scrape(target)
+                (price, status) = self.scrape_target(target)
+                self.save_price_history(target, price, status)
                 self.successes += 1
-            except TimeoutException as e:
-                err_msg = f"Target timed out {target.alias or ''} {target.url} trying cache"
-                self.stderr.write(err_msg)
-                self.logger.fail(
-                    err_msg, f"Target failed {target.alias or ''} {target.url}")
-                self.handle_cached(target)
-            except PriceNotFoundException as e:
-                err_msg = f"Price not found {target.alias or ''} {target.url} trying cache"
-                self.stderr.write(err_msg)
-                self.logger.fail(
-                    err_msg, f"Price not found {target.alias or ''} {target.url}")
-                self.handle_cached(target)
+            except PriceNotFoundException:
+                self.log_message(
+                    f'Price not found: {target.url}', is_error=True)
+                self.save_target_status(target, target.Statuses.UNDEFINED)
             except Exception as e:
-                err_msg = f"Scraping target failed with {e}"
-                self.stderr.write(err_msg)
-                self.logger.fail(
-                    err_msg, f"Target failed {target.alias or ''} {target.url}")
+                self.log_message(
+                    f'Target failed {target.url}: {e}', is_error=True)
+                self.save_target_status(target, target.Statuses.UNDEFINED)
 
-        end_msg = f'Scrape job finished with {self.successes} out of {len(targets)} successes'
-        self.stdout.write(end_msg)
-        self.logger.success(end_msg, f"Scrape job ended at {datetime.now()}")
+        self.log_message(
+            f'Finished scraping job with {self.successes}/{len(targets)} successes at {datetime.now()}')

@@ -32,12 +32,12 @@ def create_target(url=None):
 
 
 def create_price_history():
-    return PriceHistory.objects.create(price=2.5, status='S', target=create_target())
+    return PriceHistory.objects.create(price=2.5, target=create_target())
 
 
 def run_scrape_command():
     out = StringIO()
-    call_command('scrape', stdout=out, stderr=out)
+    call_command('scrape', f='D', stdout=out, stderr=out)
     return out
 
 
@@ -168,26 +168,19 @@ class DownloadDatabaseViewTest(TestCase):
 class ScrapeCommandTest(TestCase):
     def test_run_scrape_no_targets(self):
         out = run_scrape_command()
-        self.assertIn(
-            "Scrape job finished with 0 out of 0 successes", out.getvalue())
+        self.assertIn("Found no targets", out.getvalue())
 
     def test_run_scrape(self):
         target = create_target(
             url="https://pt.aliexpress.com/item/4000440445220.html")
         out = run_scrape_command()
         self.assertIn(
-            "Scrape job finished with 1 out of 1 successes", out.getvalue())
-
-    @skip("2023-01-26: Since direct page scraping is deactivated for the moment, there is no reason to run this test")
-    def test_run_scrape_timeout(self):
-        create_target(url="https://searx.space")
-        out = run_scrape_command()
-        self.assertIn("Target timed out", out.getvalue())
+            "Finished scraping job with 1/1 successes", out.getvalue())
 
     def test_run_scrape_failed(self):
         create_target()
         out = run_scrape_command()
-        self.assertIn("target failed", out.getvalue())
+        self.assertIn("Target failed", out.getvalue())
 
 
 @tag('model')
@@ -263,4 +256,4 @@ class PriceHistoryModelTest(TestCase):
 
     def test_can_str(self):
         self.assertEqual(
-            f'{self.history.price} - {self.history.target} - {self.history.status} - {self.history.created_at}', self.history.__str__())
+            f'{self.history.price} - {self.history.target} - {self.history.created_at}', self.history.__str__())

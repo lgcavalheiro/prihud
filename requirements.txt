@@ -1,11 +1,10 @@
 autopep8
 pylint
-selenium
 Django
 apprise
-webdriver-manager
 django-environ
 coverage
 extruct
 gunicorn
-
+webdriver-manager
+selenium

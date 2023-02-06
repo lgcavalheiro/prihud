@@ -116,7 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = env('TZ', default='UTC')
 
 USE_I18N = True
 
@@ -144,3 +144,5 @@ LOGIN_URL = 'login'
 DRIVER_PATH = env('DRIVER_PATH', default=None)
 
 DISCORD_HOOK = env('DISCORD_HOOK')
+
+TESTING = True if os.environ.get('TESTING') == "True" else False

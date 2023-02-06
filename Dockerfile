@@ -2,6 +2,9 @@ FROM python:3.10-alpine AS base
     WORKDIR /app
     EXPOSE 8000
 
+    ARG TZ=Europe/London
+    ENV TZ $TZ
+
     COPY cron /var/spool/cron/crontabs/app
     COPY requirements.txt ./
     COPY .env ./
@@ -13,7 +16,7 @@ FROM python:3.10-alpine AS base
     COPY entrypoint.sh ./
     
     RUN apk update && \
-        apk add --no-cache firefox busybox-suid su-exec && \
+        apk add --no-cache firefox busybox-suid su-exec tzdata && \
         chmod u+s /sbin/su-exec && \
         pip install --upgrade pip && \
         pip3 install --no-cache-dir -r requirements.txt && \
@@ -22,7 +25,6 @@ FROM python:3.10-alpine AS base
 
 FROM base AS dockerized
     ARG DJANGO_ENV=dev
-
     ENV ENV $DJANGO_ENV
 
     COPY static ./static
@@ -35,7 +37,6 @@ FROM base AS dockerized
 
 FROM base AS composed
     ARG DBU_ENV=dev
-
     ENV ENV $DBU_ENV
 
     COPY static ./staticfiles

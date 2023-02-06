@@ -68,7 +68,7 @@
           </a>
         </td>
         <td>{{ entry.get_store_name_from_url }}</td>
-        <td>{{ entry.get_recent_price_history.get_verbose_status }}</td>
+        <td>{{ entry.get_status_display }}</td>
         <td>{{ entry.get_recent_price_history.created_at }}</td>
       </tr>
       {% endfor %}

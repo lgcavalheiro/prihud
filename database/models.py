@@ -2,6 +2,8 @@ from django.utils.timezone import now
 from django.db import models
 from django.urls import reverse
 from django.db.models import Min, Max
+from django.utils.translation import gettext_lazy as _
+from selenium.webdriver.common.by import By
 from datetime import datetime
 
 
@@ -37,10 +39,32 @@ class Product(models.Model):
 
 
 class Target(models.Model):
+    class Statuses(models.TextChoices):
+        SUCCESS = 'S', _('Success')
+        OUT_OF_STOCK = 'O', _('Out of stock')
+        UNDEFINED = 'U', _('Undefined status')
+
+    class Frequencies(models.TextChoices):
+        FOUR_TIMES = 'F', _('Four times a day')
+        TWO_TIMES = 'T', _('Twice a day')
+        DAILY = 'D', _('Daily')
+        WEEKLY = 'W', _('Weekly')
+
+    class SelectorTypes(models.TextChoices):
+        CSS = By.CSS_SELECTOR
+        XPATH = By.XPATH
+        TAG = By.TAG_NAME
+        CLASS = By.CLASS_NAME
+
     alias = models.CharField(max_length=128, null=True)
     url = models.CharField(max_length=256)
-    selector_type = models.CharField(max_length=8)
+    selector_type = models.CharField(
+        max_length=16, choices=SelectorTypes.choices, default=SelectorTypes.CSS)
     selector = models.CharField(max_length=256)
+    status = models.CharField(
+        max_length=1, null=True, choices=Statuses.choices, default=Statuses.SUCCESS)
+    frequency = models.CharField(
+        max_length=1, choices=Frequencies.choices, default=Frequencies.DAILY)
     product = models.ForeignKey(
         Product, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField('created_at', default=now)
@@ -60,24 +84,14 @@ class Target(models.Model):
         return PriceHistory.objects.filter(target_id=self.id).order_by('-created_at').first()
 
     def is_available(self):
-        return self.get_recent_price_history().status == 'S'
+        return self.status == self.Statuses.SUCCESS
 
 
 class PriceHistory(models.Model):
-    STATUSES = {
-        'S': 'Success',
-        'O': 'Out of stock',
-        'U': 'Undefined status'
-    }
-
     price = models.FloatField()
-    status = models.CharField(max_length=1)
     target = models.ForeignKey(Target, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField('created_at', default=now)
     updated_at = models.DateTimeField('updated_at', default=now)
 
     def __str__(self):
-        return f'{self.price} - {self.target} - {self.status} - {self.created_at}'
-
-    def get_verbose_status(self):
-        return self.STATUSES.get(self.status, "Not mapped")
+        return f'{self.price} - {self.target} - {self.created_at}'
