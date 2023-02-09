@@ -10,7 +10,7 @@ from database.scraping.exceptions import PriceNotFoundException
 from database.models import Target, PriceHistory
 from prihud.logger import AppriseLogger
 from database.test_utils import TestLogger
-from prihud.settings import DRIVER_PATH, TESTING
+from prihud.settings import DRIVER_PATH, TESTING, COOKIES
 
 
 class Command(BaseCommand):
@@ -36,6 +36,14 @@ class Command(BaseCommand):
         self.logger = TestLogger() if TESTING else AppriseLogger()
         self.price_getter = PriceGetter(driver)
         self.scraper = DriverScraper(driver)
+
+        if COOKIES:
+            self.log_message(
+                f'Adding cookies from: {",".join(COOKIES.keys())}')
+            for key in COOKIES.keys():
+                driver.get(f'https://{key}')
+                for cookie in COOKIES[key]:
+                    driver.add_cookie(cookie)
 
     def __del__(self):
         self.price_getter = None
@@ -123,6 +131,7 @@ class Command(BaseCommand):
 
         for target in targets:
             try:
+                self.log_message(f'==== {target.alias or target.url} ====')
                 (price, status) = self.scrape_target(target)
                 self.save_price_history(target, price, status)
                 self.successes += 1
