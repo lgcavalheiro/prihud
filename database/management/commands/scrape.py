@@ -6,11 +6,11 @@ from webdriver_manager.firefox import GeckoDriverManager
 from datetime import datetime
 from database.scraping.impl.driver_scraper import DriverScraper
 from database.scraping.impl.price_getter import PriceGetter
-from database.scraping.exceptions import PriceNotFoundException
-from database.models import Target, PriceHistory
+from database.scraping.exceptions import PriceNotFoundException, NoSelectorException
+from database.models import Target, PriceHistory, Statuses, Frequencies, Cookie
 from prihud.logger import AppriseLogger
 from database.test_utils import TestLogger
-from prihud.settings import DRIVER_PATH, TESTING, COOKIES
+from prihud.settings import DRIVER_PATH, TESTING
 
 
 class Command(BaseCommand):
@@ -37,13 +37,14 @@ class Command(BaseCommand):
         self.price_getter = PriceGetter(driver)
         self.scraper = DriverScraper(driver)
 
-        if COOKIES:
+        cookies = Cookie.get_all_grouped()
+        if cookies:
             self.log_message(
-                f'Adding cookies from: {",".join(COOKIES.keys())}')
-            for key in COOKIES.keys():
+                f'Adding cookies from: {",".join(cookies.keys())}')
+            for key in cookies.keys():
                 driver.get(f'https://{key}')
-                for cookie in COOKIES[key]:
-                    driver.add_cookie(cookie)
+                for cookie in cookies[key]:
+                    driver.add_cookie(cookie.get_parsed())
 
     def __del__(self):
         self.price_getter = None
@@ -76,7 +77,7 @@ class Command(BaseCommand):
         if target.status != status:
             self.save_target_status(target, status)
 
-        if status == target.Statuses.SUCCESS:
+        if status == Statuses.SUCCESS:
             price_history = PriceHistory(target=target, price=price)
             price_history.save()
 
@@ -89,7 +90,7 @@ class Command(BaseCommand):
             except Exception as e:
                 self.log_message(
                     f'Target failed, trying next strategy {target.alias if target.alias else target.url}: {e}')
-                return ("ERROR", target.Statuses.UNDEFINED)
+                return ("ERROR", Statuses.UNDEFINED)
 
         # lambda self, target: self.strategy(target)
         strategies = {
@@ -102,7 +103,7 @@ class Command(BaseCommand):
                 self, target, use_cache=value['use_cache'])
             if price != "ERROR":
                 self.log_message(
-                    f"Strategy [{key}] found price: {price} - {dict(target.Statuses.choices).get(status, 'UNMAPPED STATUS')} - {target.url}")
+                    f"Strategy [{key}] found price: {price} - {dict(Statuses.choices).get(status, 'UNMAPPED STATUS')} - {target.url}")
                 return (price, status)
 
         raise PriceNotFoundException
@@ -123,7 +124,7 @@ class Command(BaseCommand):
 
         if len(targets) == 0:
             self.log_message(
-                f"Found no targets for this scraping job: [{dict(Target.Frequencies.choices).get(options['frequency'], 'UNMAPPED FREQUENCY')}]")
+                f"Found no targets for this scraping job: [{dict(Frequencies.choices).get(options['frequency'], 'UNMAPPED FREQUENCY')}]")
             return
 
         self.log_message(
@@ -138,11 +139,15 @@ class Command(BaseCommand):
             except PriceNotFoundException:
                 self.log_message(
                     f'Price not found: {target.url}', is_error=True)
-                self.save_target_status(target, target.Statuses.UNDEFINED)
+                self.save_target_status(target, Statuses.PRICE_NOT_FOUND)
+            except NoSelectorException as e:
+                self.log_message(
+                    f'No selector set: {target.url}', is_error=True)
+                self.save_price_history(target, Statuses.NO_SELECTOR)
             except Exception as e:
                 self.log_message(
                     f'Target failed {target.url}: {e}', is_error=True)
-                self.save_target_status(target, target.Statuses.UNDEFINED)
+                self.save_target_status(target, Statuses.UNDEFINED)
 
         self.log_message(
             f'Finished scraping job with {self.successes}/{len(targets)} successes at {datetime.now()}')

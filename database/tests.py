@@ -26,8 +26,8 @@ def create_product():
 
 def create_target(url=None):
     url = url if url else "test_url"
-    return Target.objects.create(url=url, selector_type="css",
-                                 selector=".product-price-current > span:nth-child(1)",
+    return Target.objects.create(url=url, custom_selector_type="css",
+                                 custom_selector=".product-price-current > span:nth-child(1)",
                                  product=create_product())
 
 

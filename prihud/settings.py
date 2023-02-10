@@ -146,10 +146,3 @@ DRIVER_PATH = env('DRIVER_PATH', default=None)
 DISCORD_HOOK = env('DISCORD_HOOK')
 
 TESTING = True if os.environ.get('TESTING') == "True" else False
-
-COOKIES = {
-    "pt.aliexpress.com": [
-        {'name': 'aep_usuc_f', 'value': 'site=bra&c_tp=BRL&region=BR&b_locale=pt_BR',
-            'path': '/', 'domain': '.aliexpress.com'},
-    ]
-}
