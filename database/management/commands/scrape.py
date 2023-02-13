@@ -7,9 +7,6 @@ class Command(BaseCommand):
     help = 'Run scraper for fetching price data'
     scraping_job = None
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def add_arguments(self, parser):
         parser.add_argument('-f', type=str, dest='frequency',
                             help='Defines the target frequency to scrape')
