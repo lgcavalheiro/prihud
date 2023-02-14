@@ -1,7 +1,6 @@
 # Project Specific
-mongoData
-migrations/
 downloaded_files/
+dump/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -37,6 +37,7 @@ SECURE_SSL_REDIRECT = True if env('ENV', default='dev') == 'prod' else False
 
 ALLOWED_HOSTS = env('ALLOWED_HOSTS', default=[])
 
+CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS', default=[])
 
 # Application definition
 

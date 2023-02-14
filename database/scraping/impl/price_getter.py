@@ -1,5 +1,5 @@
 import extruct
-from database.scraping.exceptions import PriceNotFoundException
+from database.scraping.exceptions import PriceNotFoundException, NoSelectorException
 from database.scraping.interfaces import PriceGetterInterface
 
 NOT_FOUND_CONST = -1
@@ -41,10 +41,19 @@ class PriceGetter(PriceGetterInterface):
 
     def get_price_from_page(self, target):
         status = 'S'
-        price_tag = self.driver.find_element(
-            by=target.selector_type, value=target.selector)
+        selector, selector_type = None, None
+
+        if target.selector:
+            selector, selector_type = target.selector.selector, target.selector.selector_type
+        elif target.custom_selector and target.custom_selector_type:
+            selector, selector_type = target.custom_selector, target.custom_selector_type
+        else:
+            raise NoSelectorException()
+
+        price_tag = self.driver.find_element(by=selector_type, value=selector)
         price = price_tag.text.replace('R$', '').replace('\n', ',').replace(
             '.', '').replace(',', '.').strip()
+
         return (price, status)
 
     def get_price(self, page, target):

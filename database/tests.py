@@ -7,11 +7,13 @@ from django.test import tag
 from unittest import skip
 from io import StringIO
 from .utils import gen_color, rand
-from .models import Category, Product, Target, PriceHistory
+from .models import Category, Product, Target, PriceHistory, Cookie, DefaultSelector, Statuses, SelectorTypes
+from .scraping.impl.scraping_job import ScrapingJob
 
 DEFAULT_USER = "testuser"
 DEFAULT_EMAIL = "test@user.local"
 DEFAULT_PASS = "1test2password3"
+DEFAULT_URL = "test_url"
 
 
 def create_category():
@@ -25,9 +27,9 @@ def create_product():
 
 
 def create_target(url=None):
-    url = url if url else "test_url"
-    return Target.objects.create(url=url, selector_type="css",
-                                 selector=".product-price-current > span:nth-child(1)",
+    url = url if url else DEFAULT_URL
+    return Target.objects.create(url=url, custom_selector_type=SelectorTypes.CSS,
+                                 custom_selector=".product-price-current > span:nth-child(1)",
                                  product=create_product())
 
 
@@ -35,9 +37,12 @@ def create_price_history():
     return PriceHistory.objects.create(price=2.5, target=create_target())
 
 
-def run_scrape_command():
+def run_scrape_command(use_ids=False):
     out = StringIO()
-    call_command('scrape', f='D', stdout=out, stderr=out)
+    if use_ids:
+        call_command('scrape', i=[1], stdout=out, stderr=out)
+    else:
+        call_command('scrape', f='D', stdout=out, stderr=out)
     return out
 
 
@@ -171,16 +176,22 @@ class ScrapeCommandTest(TestCase):
         self.assertIn("Found no targets", out.getvalue())
 
     def test_run_scrape(self):
-        target = create_target(
+        create_target(
             url="https://pt.aliexpress.com/item/4000440445220.html")
         out = run_scrape_command()
-        self.assertIn(
-            "Finished scraping job with 1/1 successes", out.getvalue())
+        self.assertIn("Results: 1/1 successes", out.getvalue())
 
     def test_run_scrape_failed(self):
         create_target()
         out = run_scrape_command()
-        self.assertIn("Target failed", out.getvalue())
+        self.assertIn("Had 1 failures", out.getvalue())
+        self.assertIn(DEFAULT_URL, out.getvalue())
+
+    def test_use_ids_for_scraping(self):
+        create_target(url="https://pt.aliexpress.com/item/4000440445220.html")
+        create_target(url="https://pt.aliexpress.com/item/123123123123.html")
+        out = run_scrape_command(use_ids=True)
+        self.assertIn("Results: 1/1 successes", out.getvalue())
 
 
 @tag('model')
@@ -192,9 +203,10 @@ class CategoryModelTest(TestCase):
 
 @tag('model')
 class ProductModelTest(TestCase):
-    def setUp(self):
-        self.history = create_price_history()
-        self.product = self.history.target.product
+    @classmethod
+    def setUpTestData(cls):
+        cls.history = create_price_history()
+        cls.product = cls.history.target.product
 
     def test_can_str(self):
         self.assertEqual(self.product.name, self.product.__str__())
@@ -215,9 +227,10 @@ class ProductModelTest(TestCase):
 
 @tag('model')
 class TargetModelTest(TestCase):
-    def setUp(self):
-        self.history = create_price_history()
-        self.target = self.history.target
+    @classmethod
+    def setUpTestData(cls):
+        cls.history = create_price_history()
+        cls.target = cls.history.target
 
     def test_can_str(self):
         self.assertEqual(self.target.url, self.target.__str__())
@@ -251,9 +264,51 @@ class TargetModelTest(TestCase):
 
 @tag('model')
 class PriceHistoryModelTest(TestCase):
-    def setUp(self):
-        self.history = create_price_history()
+    @classmethod
+    def setUpTestData(cls):
+        cls.history = create_price_history()
 
     def test_can_str(self):
         self.assertEqual(
             f'{self.history.price} - {self.history.target} - {self.history.created_at}', self.history.__str__())
+
+
+@tag('scraping')
+class ScrapingJobTest(TestCase):
+    def setUp(self):
+        self.history = create_price_history()
+        cookie = Cookie(url="https://pt.aliexpress.com", name="test-cookie",
+                        value="test-val", path="/", domain=".aliexpress.com")
+        cookie.save()
+        self.job = ScrapingJob([self.history.target])
+
+    def test_can_use_cookies(self):
+        self.assertEqual(
+            "test-cookie", self.job.scraper.driver.get_cookie("test-cookie")['name'])
+
+    def test_can_save_target_status(self):
+        self.job.save_target_status(self.history.target, Statuses.OUT_OF_STOCK)
+        self.assertEqual(self.history.target.status, Statuses.OUT_OF_STOCK)
+
+
+@tag('model')
+class CookieModelTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.cookie = Cookie(url="https://pt.aliexpress.com", name="test-cookie",
+                            value="test-val", path="/", domain=".aliexpress.com")
+
+    def test_can_str(self):
+        self.assertEqual(
+            f'{self.cookie.url} - {self.cookie.name}', self.cookie.__str__())
+
+
+@tag('model')
+class DefaultSelectorModelTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.selector = DefaultSelector(
+            name="test-selector", selector_type=SelectorTypes.CSS, selector=".test")
+
+    def test_can_str(self):
+        self.assertEqual(self.selector.name, self.selector.__str__())
