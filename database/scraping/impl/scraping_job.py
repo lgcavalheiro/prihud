@@ -121,6 +121,13 @@ class ScrapingJob():
         self.logger.success(
             f'Total duration: {self.end_time - self.start_time}')
 
+        if len(self.failures) > 0:
+            self.logger.fail(
+                f"=== Had {len(self.failures)} failures ===")
+            for failure in self.failures:
+                self.logger.fail(
+                    f'{failure[0].alias or failure[0].url}: {failure[1]}')
+
     def get_report(self):
         return {
             'start_time': self.start_time,
