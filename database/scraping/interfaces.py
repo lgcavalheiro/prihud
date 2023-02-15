@@ -27,3 +27,13 @@ class PriceGetterInterface(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_price_from_page(self, target):
         return NotImplementedError
+
+
+class StrategyInterface(metaclass=abc.ABCMeta):
+    @classmethod
+    def __subclasshook__(cls, subclass):
+        return (hasattr(subclass, 'execute') and callable(subclass.execute) or NotImplemented)
+
+    @abc.abstractmethod
+    def execute(self, target) -> (str, str):
+        return NotImplementedError

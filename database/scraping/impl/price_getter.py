@@ -18,9 +18,9 @@ class PriceGetter(PriceGetterInterface):
         if self.driver:
             self.driver.quit()
 
-    def get_price_from_metadata(self, page, base_url):
+    def get_price_from_metadata(self, base_url):
         status = 'S'
-        metadata = extruct.extract(page,
+        metadata = extruct.extract(self.driver.page_source,
                                    base_url=base_url,
                                    uniform=True,
                                    syntaxes=['json-ld',
@@ -56,8 +56,8 @@ class PriceGetter(PriceGetterInterface):
 
         return (price, status)
 
-    def get_price(self, page, target):
-        (price, status) = self.get_price_from_metadata(page, target.url)
+    def get_price(self, target):
+        (price, status) = self.get_price_from_metadata(target.url)
         if price != NOT_FOUND_CONST and status != NOT_FOUND_CONST:
             return (price, status)
 

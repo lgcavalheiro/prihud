@@ -5,6 +5,7 @@ from webdriver_manager.firefox import GeckoDriverManager
 from datetime import datetime
 from database.scraping.impl.driver_scraper import DriverScraper
 from database.scraping.impl.price_getter import PriceGetter
+from database.scraping.impl.strategies import DefaultStrategy, CacheStrategy
 from database.scraping.exceptions import PriceNotFoundException, NoSelectorException
 from database.models import PriceHistory, Statuses, Cookie
 from prihud.logger import AppriseLogger
@@ -14,12 +15,11 @@ from prihud.settings import DRIVER_PATH, TESTING
 
 class ScrapingJob():
     price_getter, scraper, logger, start_time, end_time = None, None, None, None, None
-    targets, failures = [], []
+    targets, failures, strategies = [], [], []
     successes = 0
 
     def __init__(self, targets):
         self.targets = targets
-
         options = FirefoxOptions()
         options.add_argument('--headless')
         options.set_preference('permissions.default.image', 2)
@@ -33,6 +33,10 @@ class ScrapingJob():
         self.logger = TestLogger() if TESTING else AppriseLogger()
         self.price_getter = PriceGetter(driver)
         self.scraper = DriverScraper(driver)
+        self.strategies = [
+            DefaultStrategy(self.scraper, self.price_getter),
+            CacheStrategy(self.scraper, self.price_getter)
+        ]
 
         cookies = Cookie.get_all_grouped()
         if cookies:
@@ -65,29 +69,15 @@ class ScrapingJob():
             price_history.save()
 
     def scrape_target(self, target):
-        def execute_strategy(self, target, use_cache=False):
+        for strategy in self.strategies:
             try:
-                page = self.scraper.scrape(target.url, use_cache=use_cache)
-                (price, status) = self.price_getter.get_price(page, target)
+                (price, status) = strategy.execute(target)
+                self.logger.info(
+                    f"Strategy [{strategy.__class__.__name__}] found price: {price} - {dict(Statuses.choices).get(status, 'UNMAPPED STATUS')} - {target.url}")
                 return (price, status)
             except Exception as e:
                 self.logger.warn(
                     f'Target failed, trying next strategy {target.alias or target.url}: {e}')
-                return ("ERROR", Statuses.UNDEFINED)
-
-        # lambda self, target: self.strategy(target)
-        strategies = {
-            'standard': {'use_cache': False},
-            'cache_approach': {'use_cache': True},
-        }
-
-        for (key, value) in strategies.items():
-            (price, status) = execute_strategy(
-                self, target, use_cache=value['use_cache'])
-            if price != "ERROR":
-                self.logger.info(
-                    f"Strategy [{key}] found price: {price} - {dict(Statuses.choices).get(status, 'UNMAPPED STATUS')} - {target.url}")
-                return (price, status)
 
         raise PriceNotFoundException
 
@@ -96,24 +86,23 @@ class ScrapingJob():
         self.logger.info(
             f'Starting scraping job with {len(self.targets)} targets at {self.start_time}')
 
+        error_handling_literals = {
+            "PriceNotFoundException": ("Price not found: ", Statuses.PRICE_NOT_FOUND, False),
+            "NoSelectorException": ("No selector set: ", Statuses.NO_SELECTOR, False)
+        }
+
         for target in self.targets:
             try:
                 self.logger.info(f'==== {target.alias or target.url} ====')
                 (price, status) = self.scrape_target(target)
                 self.save_price_history(target, price, status)
                 self.successes += 1
-            except PriceNotFoundException as e:
-                self.logger.fail(f'Price not found: {target.url}')
-                self.failures.append((target, e))
-                self.save_target_status(target, Statuses.PRICE_NOT_FOUND)
-            except NoSelectorException as e:
-                self.logger.fail(f'No selector set: {target.url}')
-                self.failures.append((target, e))
-                self.save_target_status(target, Statuses.NO_SELECTOR)
             except Exception as e:
-                self.logger.fail(f'Target failed {target.url}: {e}')
+                (msg, status, log_error) = error_handling_literals.get(
+                    e.__class__.__name__, ("Target failed: ", Statuses.UNDEFINED, True))
                 self.failures.append((target, e))
-                self.save_target_status(target, Statuses.UNDEFINED)
+                self.save_target_status(target, status)
+                self.logger.fail(f"{msg}{target.url} {e if log_error else ''}")
 
         self.end_time = datetime.now()
         self.logger.success(
