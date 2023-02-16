@@ -1,3 +1,4 @@
+from threading import Thread
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
@@ -5,9 +6,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
 from django.core.files import File
 from django.http.response import HttpResponse
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.core.management import call_command
 from datetime import datetime
 from .utils import gen_color
-from .models import PriceHistory, Target, Product, Category
+from .models import PriceHistory, Target, Product, Category, Frequencies
 
 
 class CategoryListView(LoginRequiredMixin, ListView):
@@ -70,13 +74,17 @@ def PriceHistoryView(request, product_id):
 
 @login_required
 def DownloadDatabaseView(request):
+    if not request.user.is_superuser:
+        return HttpResponseRedirect(reverse('index'))
+
     db_path = settings.DATABASES['default']['NAME']
     do_download = request.GET.get('do_download', False)
 
     if do_download and db_path:
         with File(open(db_path, "rb")) as db_file:
             new_name = f"{datetime.now()}{db_path}"
-            response = HttpResponse(db_file, content_type='application/x-sqlite3')
+            response = HttpResponse(
+                db_file, content_type='application/x-sqlite3')
             response['Content-Disposition'] = 'attachment; filename=%s' % new_name
             response['Content-Length'] = db_file.size
 
@@ -84,4 +92,43 @@ def DownloadDatabaseView(request):
 
     return render(request, 'database/databaseDownload.html', {
         'db_path': db_path
+    })
+
+
+running_commands = []
+
+
+class CommandStarter(Thread):
+    frequency = None
+    targets = []
+
+    def __init__(self, frequency, targets):
+        super(CommandStarter, self).__init__()
+        self.frequency = frequency
+        self.targets = targets
+        running_commands.append(self)
+
+    def run(self):
+        if self.frequency:
+            call_command('scrape', f=self.frequency)
+        elif len(self.targets) > 0:
+            call_command('scrape', i=self.targets)
+        running_commands.remove(self)
+
+
+@login_required
+def CommandsView(request):
+    if not request.user.is_superuser:
+        return HttpResponseRedirect(reverse('index'))
+
+    if request.method == 'POST':
+        frequency = request.POST['frequency']
+        targets = request.POST.getlist('targets')
+        starter = CommandStarter(frequency, targets)
+        starter.start()
+
+    return render(request, 'database/commands.html', {
+        'running_commands': running_commands,
+        'frequencies': Frequencies.choices,
+        'targets': Target.objects.values('id', 'alias', 'url').all()
     })

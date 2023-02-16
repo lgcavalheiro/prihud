@@ -1,0 +1,32 @@
+{% extends 'base.html' %} {% block content %}
+<main class="container">
+  <h1>Scrape commands</h1>
+  <form action="{% url 'database:commands' %}" method="post">
+    {% csrf_token %}
+    <label for="frequency">Frequencies</label>
+    <select name="frequency" id="frequency">
+      <option value="" select>---</option>
+      {% for frequency in frequencies %}
+      <option value="{{ frequency.0 }}">{{ frequency.1 }}</option>
+      {% endfor %}
+    </select>
+    <label for="targets">Targets</label>
+    <select name="targets" id="targets" multiple>
+      {% for target in targets %}
+      <option value="{{ target.id }}">
+        {% firstof target.alias target.url %}
+      </option>
+      {% endfor %}
+    </select>
+    <input type="submit" value="Run command" />
+  </form>
+  {% if running_commands %}
+  <h2>Running commands</h2>
+  <ul>
+    {% for command in running_commands %}
+    <li>{{ command.name }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</main>
+{% endblock %}

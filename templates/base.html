@@ -30,6 +30,15 @@
       <ul>
         <li><a href="{% url 'database:categoryList' %}">Categories</a></li>
         <li><a href="{% url 'database:productList' %}">Products</a></li>
+        {% if user.is_superuser %}
+        <li><a href="{% url 'database:commands' %}">Commands</a></li>
+        <li>
+          <a href="{% url 'database:downloadDatabase' %}">DB download</a>
+        </li>
+        <li>
+          <a href="{% url 'admin:index' %}">Admin</a>
+        </li>
+        {% endif %}
         <li>
           <a href="{% url 'logout' %}">
             <svg class="icon">
