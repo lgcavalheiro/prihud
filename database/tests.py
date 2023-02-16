@@ -185,6 +185,7 @@ class ScrapeCommandTest(TestCase):
         create_target()
         out = run_scrape_command()
         self.assertIn("Had 1 failures", out.getvalue())
+        self.assertIn("PriceNotFoundException", out.getvalue())
         self.assertIn(DEFAULT_URL, out.getvalue())
 
     def test_use_ids_for_scraping(self):
