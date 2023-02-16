@@ -15,6 +15,10 @@ DEFAULT_EMAIL = "test@user.local"
 DEFAULT_PASS = "1test2password3"
 DEFAULT_URL = "test_url"
 
+ADMIN_USER = "admin"
+ADMIN_PASS = "adm123"
+ADMIN_EMAIL = "admin@user.local"
+
 
 def create_category():
     return Category.objects.create(name="Test category")
@@ -50,10 +54,15 @@ def setup_login(self):
     self.client = Client()
     self.user = User.objects.create_user(
         DEFAULT_USER, DEFAULT_EMAIL, DEFAULT_PASS)
+    self.admin = User.objects.create_superuser(
+        ADMIN_USER, ADMIN_EMAIL, ADMIN_PASS)
 
 
-def do_login(self):
-    self.client.login(username=DEFAULT_USER, password=DEFAULT_PASS)
+def do_login(self, as_admin=False):
+    if as_admin:
+        self.client.login(username=ADMIN_USER, password=ADMIN_PASS)
+    else:
+        self.client.login(username=DEFAULT_USER, password=DEFAULT_PASS)
 
 
 @tag('util')
@@ -162,11 +171,17 @@ class DownloadDatabaseViewTest(TestCase):
         setup_login(self)
 
     def test_show_download_link(self):
-        do_login(self)
+        do_login(self, as_admin=True)
         url = reverse('database:downloadDatabase')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Download database file")
+
+    def test_show_download_link_redirect(self):
+        do_login(self)
+        url = reverse('database:downloadDatabase')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
 
 
 @tag('command')
