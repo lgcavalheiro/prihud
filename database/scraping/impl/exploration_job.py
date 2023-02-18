@@ -43,7 +43,7 @@ class ExplorationJob:
 
     def __del__(self):
         self.price_getter = None
-        self.driver = None
+        self.scraper = None
 
     def scrape_target(self, target):
         for strategy in self.strategies:

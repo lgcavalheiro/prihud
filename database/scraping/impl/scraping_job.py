@@ -49,7 +49,7 @@ class ScrapingJob():
 
     def __del__(self):
         self.price_getter = None
-        self.driver = None
+        self.scraper = None
         self.logger = None
 
     def save_target_status(self, target, status):
