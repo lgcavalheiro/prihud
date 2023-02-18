@@ -1,0 +1,45 @@
+{% extends 'base.html' %} {% block content %}
+<main class="container">
+  <h1>Explore command</h1>
+  <form action="{% url 'database:exploreCommand' %}" method="post">
+    {% csrf_token %}
+    <label for="url">Target url</label>
+    <input type="text" name="url" />
+    <label for="selector-type">Selector type</label>
+    <select name="selector-type">
+      <option value="">---</option>
+      {% for type in selector_types %}
+      <option value="{{ type.0 }}">{{ type.1 }}</option>
+      {% endfor %}
+    </select>
+    <label for="selector">Selector</label>
+    <input type="text" name="selector" />
+    <input type="hidden" name="operation" value="explore" />
+    <input type="submit" value="Run command" />
+  </form>
+  {% if exploration_result %} {% if exploration_result.success %}
+  <h2>Result: Success</h2>
+  <h3>Status: {{ exploration_result.status }}</h3>
+  <h3>Price: {{ exploration_result.price }}</h3>
+  <h4>Duration {{ exploration_result.duration }}</h4>
+  <h5>Started {{ exploration_result.start_time }}</h5>
+  <h5>Ended {{ exploration_result.end_time }}</h5>
+  {% else %}
+  <h2>Result: Failed</h2>
+  <h3>Status: {{ exploration_result.status }}</h3>
+  <h4>{{ exploration_result.message }}</h4>
+  <p>{{ exploration_result.error }}</p>
+  {% endif %}
+  <form action="{% url 'database:exploreCommand' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="operation" value="download_result" />
+    <input
+      type="hidden"
+      name="result_file"
+      value="{{ exploration_result.result_file }}"
+    />
+    <input type="submit" value="Download result" />
+  </form>
+  {% endif %}
+</main>
+{% endblock %}

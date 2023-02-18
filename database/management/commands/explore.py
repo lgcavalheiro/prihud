@@ -1,10 +1,11 @@
+import json
 from django.core.management.base import BaseCommand
-from database.scraping.impl.scraping_job import ScrapingJob
+from database.scraping.impl.exploration_job import ExplorationJob
 from database.models import Target
 
 
 class Command(BaseCommand):
-    help = 'Dry run'
+    help = 'Explore page from within Prihud'
 
     def add_arguments(self, parser):
         parser.add_argument('-u', type=str, dest='url', help='Target url')
@@ -21,8 +22,6 @@ class Command(BaseCommand):
         target = Target(
             url=url, custom_selector_type=selector_type, custom_selector=selector)
 
-        job = ScrapingJob([target])
+        result = ExplorationJob(target).start()
 
-        job.start()
-
-        return job.scraper.driver.page_source
+        return json.dumps(result, indent=2)
