@@ -69,7 +69,7 @@ class ExplorationJob:
                 "success": False,
                 "message": f'{msg}{self.target.url}',
                 "status": status,
-                "error": e,
+                "error": e.__str__(),
                 "page_source": self.scraper.driver.page_source
             }
 
