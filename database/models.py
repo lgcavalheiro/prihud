@@ -12,6 +12,7 @@ class Statuses(models.TextChoices):
     OUT_OF_STOCK = 'O', _('Out of stock')
     NO_SELECTOR = 'N', _('No selector set')
     PRICE_NOT_FOUND = 'P', _('Price not found')
+    CACHED = "C", _("Cached")
     UNDEFINED = 'U', _('Undefined status')
 
 
@@ -103,7 +104,7 @@ class Target(models.Model):
         return PriceHistory.objects.filter(target_id=self.id).order_by('-created_at').first()
 
     def is_available(self):
-        return self.status == Statuses.SUCCESS
+        return self.status in [Statuses.SUCCESS, Statuses.CACHED]
 
 
 class PriceHistory(models.Model):

@@ -6,7 +6,7 @@ from datetime import datetime
 from database.scraping.impl.driver_scraper import DriverScraper
 from database.scraping.impl.price_getter import PriceGetter
 from database.scraping.impl.strategies import DefaultStrategy, CacheStrategy
-from database.scraping.exceptions import PriceNotFoundException, NoSelectorException
+from database.scraping.exceptions import PriceNotFoundException, NoSelectorException, CacheNotChangedException
 from database.models import PriceHistory, Statuses, Cookie
 from prihud.logger import AppriseLogger
 from database.test_utils import TestLogger
@@ -75,6 +75,10 @@ class ScrapingJob():
                 self.logger.info(
                     f"Strategy [{strategy.__class__.__name__}] found price: {price} - {dict(Statuses.choices).get(status, 'UNMAPPED STATUS')} - {target.url}")
                 return (price, status)
+            except CacheNotChangedException as e:
+                self.logger.info(
+                    f'Target already has cached price: {target.alias or target.url}')
+                raise e
             except Exception as e:
                 self.logger.warn(
                     f'Target failed, trying next strategy {target.alias or target.url}: {e}')
@@ -96,6 +100,9 @@ class ScrapingJob():
                 self.logger.info(f'==== {target.alias or target.url} ====')
                 (price, status) = self.scrape_target(target)
                 self.save_price_history(target, price, status)
+                self.successes += 1
+            except CacheNotChangedException:
+                self.save_target_status(target, Statuses.CACHED)
                 self.successes += 1
             except Exception as e:
                 (msg, status, log_error) = error_handling_literals.get(

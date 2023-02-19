@@ -1,4 +1,5 @@
 from ..interfaces import StrategyInterface
+from ..exceptions import CacheNotChangedException
 
 
 class DefaultStrategy(StrategyInterface):
@@ -24,4 +25,7 @@ class CacheStrategy(StrategyInterface):
     def execute(self, target):
         self.scraper.scrape(target.url, use_cache=True)
         (price, status) = self.price_getter.get_price(target)
+        recent_price = target.get_recent_price_history().price
+        if recent_price == float(price):
+            raise CacheNotChangedException()
         return (price, status)
