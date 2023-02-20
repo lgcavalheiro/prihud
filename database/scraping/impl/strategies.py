@@ -1,8 +1,14 @@
+""" Module providing all strategy implementations. """
+
 from ..interfaces import StrategyInterface
 from ..exceptions import CacheNotChangedException
 
 
 class DefaultStrategy(StrategyInterface):
+    # pylint: disable=too-few-public-methods
+
+    """ Default strategy for scraping prices from targets. """
+
     price_getter, scraper = None, None
 
     def __init__(self, scraper, price_getter):
@@ -16,6 +22,11 @@ class DefaultStrategy(StrategyInterface):
 
 
 class CacheStrategy(StrategyInterface):
+    # pylint: disable=too-few-public-methods
+
+    """ Strategy for scraping prices from targets by using their
+    google cached page, if one existis """
+
     price_getter, scraper = None, None
 
     def __init__(self, scraper, price_getter):

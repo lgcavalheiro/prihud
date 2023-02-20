@@ -26,9 +26,8 @@ class Command(BaseCommand):
             return
 
         self.scraping_job = ScrapingJob(targets)
-        self.scraping_job.start()
+        report = self.scraping_job.start()
 
-        report = self.scraping_job.get_report()
         self.stdout.write("=== Report results ===")
         self.stdout.write(f"Started at: {report['start_time']}")
         self.stdout.write(f"End at: {report['end_time']}")

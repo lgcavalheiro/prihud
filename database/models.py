@@ -1,10 +1,8 @@
 from django.utils.timezone import now
 from django.db import models
-from django.urls import reverse
 from django.db.models import Min, Max
 from django.utils.translation import gettext_lazy as _
 from selenium.webdriver.common.by import By
-from datetime import datetime
 
 
 class Statuses(models.TextChoices):

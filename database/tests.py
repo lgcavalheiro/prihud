@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from django.test.client import Client
 from django.core.management import call_command
 from django.test import tag
-from unittest import skip
 from io import StringIO
 from .utils import gen_color, rand
 from .models import Category, Product, Target, PriceHistory, Cookie, DefaultSelector, Statuses, SelectorTypes

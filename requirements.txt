@@ -1,5 +1,6 @@
 autopep8
 pylint
+pyflakes
 Django
 apprise
 django-environ

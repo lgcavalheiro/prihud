@@ -17,11 +17,11 @@ class PriceGetterInterface(metaclass=abc.ABCMeta):
         return (hasattr(subclass, 'get_price') and callable(subclass.get_price) or NotImplemented)
 
     @abc.abstractmethod
-    def get_price(self, page):
+    def get_price(self, target):
         return NotImplementedError
 
     @abc.abstractmethod
-    def get_price_from_metadata(self, page, base_url):
+    def get_price_from_metadata(self, base_url):
         return NotImplementedError
 
     @abc.abstractmethod
