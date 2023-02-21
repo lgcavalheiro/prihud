@@ -1,4 +1,5 @@
 import json
+import os
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
@@ -13,6 +14,7 @@ from datetime import datetime
 from .utils import gen_color
 from .models import PriceHistory, Target, Product, Category, Frequencies, SelectorTypes
 from .scraping.utils import ScrapeStarter, running_commands
+from prihud.settings import BASE_DIR
 
 
 class CategoryListView(LoginRequiredMixin, ListView):
@@ -145,7 +147,8 @@ def ExploreCommandView(request):
 
             file_url = url.replace(
                 'https://', '').replace('/', '').replace(' ', '_')
-            result_file = f'/tmp/explore_{file_url}_{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.html'
+            result_file = os.path.join(
+                BASE_DIR, f'explore_{file_url}_{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.html')
             exploration_result['result_file'] = result_file
 
             with open(result_file, 'w') as f:
