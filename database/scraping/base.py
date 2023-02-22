@@ -44,12 +44,6 @@ class BaseJob:
 
         self.load_cookies()
 
-    # def __del__(self):
-    #     self.price_getter = None
-    #     self.scraper = None
-    #     if self.driver:
-    #         self.driver.quit()
-
     def load_cookies(self):
         raise NotImplementedError
 
@@ -66,9 +60,6 @@ class CanLog:
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.logger = TestLogger() if TESTING else AppriseLogger()
-
-    # def __del__(self):
-    #     self.logger = None
 
 
 class MultiTargetJob:

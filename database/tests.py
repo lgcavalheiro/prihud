@@ -363,18 +363,18 @@ class ExploreCommandViewTest(TestCase):
     def test_can_run_explore_command_from_view_and_download_result(self):
         do_login(self, as_admin=True)
         response = self.client.post(reverse('database:exploreCommand'), data={
-            'operation': 'explore',
+            'operation': 'explore-custom',
             'url': 'https://pt.aliexpress.com/item/1005003603757192.html',
             'selector-type': SelectorTypes.CSS,
             'selector': '.product-price-current > span:nth-child(1)'
         })
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Result:")
+        self.assertContains(response, "Status:")
         self.assertContains(response, "Download result")
 
         result_file = response.context[-1]["exploration_result"]["result_file"]
         response = self.client.post(reverse('database:exploreCommand'), data={
-            'operation': 'download_result',
+            'operation': 'download-result',
             'result_file': result_file
         })
         content_disposition = response.get('Content-Disposition')

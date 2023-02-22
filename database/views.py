@@ -116,17 +116,33 @@ def ScrapeCommandView(request):
     })
 
 
+def run_explore_command(url, selector_type, selector):
+    result = call_command('explore', u=url, t=selector_type, s=selector)
+    exploration_result = json.loads(result)
+
+    file_url = url.replace('https://', '').replace('/', '').replace(' ', '_')
+    result_file = os.path.join(
+        BASE_DIR, f'explore_{file_url}_{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.html')
+    exploration_result['result_file'] = result_file
+
+    with open(result_file, 'w') as f:
+        f.write(exploration_result['page_source'])
+
+    return exploration_result
+
+
 @login_required
 def ExploreCommandView(request):
     if not request.user.is_superuser:
         return HttpResponseRedirect(reverse('index'))
 
     exploration_result = None
+    targets = Target.objects.all()
 
     if request.method == 'POST':
         operation = request.POST['operation']
 
-        if operation == "download_result":
+        if operation == "download-result":
             result_file = request.POST['result_file']
 
             with File(open(result_file, "rb")) as file:
@@ -136,25 +152,30 @@ def ExploreCommandView(request):
 
             return response
 
-        if operation == "explore":
+        if operation == "explore-custom":
             url = request.POST['url']
             selector_type = request.POST['selector-type']
             selector = request.POST['selector']
 
-            result = call_command(
-                'explore', u=url, t=selector_type, s=selector)
-            exploration_result = json.loads(result)
+            exploration_result = run_explore_command(
+                url, selector_type, selector)
 
-            file_url = url.replace(
-                'https://', '').replace('/', '').replace(' ', '_')
-            result_file = os.path.join(
-                BASE_DIR, f'explore_{file_url}_{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.html')
-            exploration_result['result_file'] = result_file
+        if operation == "explore-known":
+            target_id = int(request.POST["selected-target"])
+            selected_target = targets.filter(id=target_id).get()
 
-            with open(result_file, 'w') as f:
-                f.write(exploration_result['page_source'])
+            if selected_target.selector:
+                selector_type = selected_target.selector.selector_type
+                selector = selected_target.selector.selector
+            else:
+                selector_type = selected_target.custom_selector_type
+                selector = selected_target.custom_selector
+
+            exploration_result = run_explore_command(
+                selected_target.url, selector_type, selector)
 
     return render(request, 'database/exploreCommand.html', {
         'selector_types': SelectorTypes.choices,
-        'exploration_result': exploration_result
+        'exploration_result': exploration_result,
+        'targets': targets
     })
