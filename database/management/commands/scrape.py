@@ -5,7 +5,6 @@ from database.models import Frequencies, Target
 
 class Command(BaseCommand):
     help = 'Run scraper for fetching price data'
-    scraping_job = None
 
     def add_arguments(self, parser):
         parser.add_argument('-f', type=str, dest='frequency',
@@ -25,8 +24,7 @@ class Command(BaseCommand):
             self.stderr.write("Found no targets for this scraping job")
             return
 
-        self.scraping_job = ScrapingJob(targets)
-        report = self.scraping_job.start()
+        report = ScrapingJob(targets).start()
 
         self.stdout.write("=== Report results ===")
         self.stdout.write(f"Started at: {report['start_time']}")
