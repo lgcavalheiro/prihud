@@ -30,6 +30,7 @@ FROM base AS dockerized
     COPY static ./static
     COPY gunicorn/$DJANGO_ENV.py ./gunicorn_config.py
 
+    RUN python manage.py collectstatic --no-input
     RUN chown -R app:app .
     USER app
 

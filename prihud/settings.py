@@ -39,14 +39,13 @@ SECURE_HSTS_SECONDS = 31536000 if env('ENV', default='dev') == 'prod' else 60
 
 SECURE_HSTS_PRELOAD = True if env('ENV', default='dev') == 'prod' else False
 
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True if env(
-    'ENV', default='dev') == 'prod' else False
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True if env('ENV', default='dev') == 'prod' else False
 
-DEBUG_PROPAGATE_EXCEPTIONS = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if env('ENV', default='dev') == 'prod' else None
 
-ALLOWED_HOSTS = env('ALLOWED_HOSTS', default=[])
+ALLOWED_HOSTS = [env('ALLOWED_HOSTS', default="*")]
 
-CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS', default=[])
+CSRF_TRUSTED_ORIGINS = [env('CSRF_TRUSTED_ORIGINS', default="")]
 
 # Application definition
 
