@@ -35,6 +35,15 @@ SESSION_COOKIE_SECURE = True if env('ENV', default='dev') == 'prod' else False
 
 SECURE_SSL_REDIRECT = True if env('ENV', default='dev') == 'prod' else False
 
+SECURE_HSTS_SECONDS = 31536000 if env('ENV', default='dev') == 'prod' else 60
+
+SECURE_HSTS_PRELOAD = True if env('ENV', default='dev') == 'prod' else False
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True if env(
+    'ENV', default='dev') == 'prod' else False
+
+DEBUG_PROPAGATE_EXCEPTIONS = True
+
 ALLOWED_HOSTS = env('ALLOWED_HOSTS', default=[])
 
 CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS', default=[])
@@ -64,33 +73,23 @@ MIDDLEWARE = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
+    'formatters': {
+        'verbose': {
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         }
     },
     'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        },
-        'prihudlog': {
+        'file': {
             'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'logging.FileHandler',
             'filename': os.path.join(BASE_DIR, 'prihud.log'),
-            'maxBytes': 1024*1024*15,  # 15MB
-            'backupCount': 10,
+            'formatter': 'verbose'
         }
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
         'prihud': {
-            'handlers': ['prihudlog',],
+            'handlers': ['file'],
             'level': 'DEBUG',
         }
     }
