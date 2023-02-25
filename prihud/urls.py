@@ -27,4 +27,5 @@ urlpatterns = [
     path('logout/', views.Logout, name="logout")
 ]
 
-urlpatterns += staticfiles_urlpatterns()
+if (os.environ.get("ENV") == "dev"):
+    urlpatterns += staticfiles_urlpatterns()
