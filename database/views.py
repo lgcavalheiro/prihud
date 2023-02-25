@@ -1,5 +1,8 @@
 import json
 import os
+import plotly.express as px
+import pandas as pd
+from plotly.offline import plot
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
@@ -53,25 +56,31 @@ def PriceHistoryView(request, product_id):
     if not history:
         return render(request, 'database/priceHistory.html')
 
-    labels = []
-    partial_data = {}
-    for h in history:
-        if h.target.url not in partial_data:
-            partial_data[h.target.url] = {
-                'label': h.target.alias or h.target.url,
-                'data': [],
-                'borderColor': gen_color(),
-            }
-        price_date = h.created_at.strftime("%m/%d/%y %H:%M")
-        partial_data[h.target.url]['data'].append(
-            {'x': price_date, 'y': h.price})
-        labels.append(price_date)
+    product_name = targets[0].product.name
+    data_frame = pd.DataFrame([{
+        'Alias': h.target.alias,
+        'url': h.target.url,
+        'Price': h.price,
+        'Collection date': h.created_at,
+    } for h in history])
+    target_refs = json.loads(data_frame.filter(
+        items=['url', 'Alias']).drop_duplicates().to_json(orient='records'))
+
+    fig = px.line(data_frame, x='Collection date', y='Price',
+                  color='Alias', markers=True)
+    fig.for_each_trace(lambda trace: trace.update(
+        name=f'{trace.name[:45]}...'))
+    fig.update_layout(
+        title=f'{product_name} - Price history',
+        paper_bgcolor='#18232C',
+        font=dict(color="rgb(213, 220, 226)"),
+        legend=dict(font=dict(size=10)))
+    chart = plot(fig, output_type='div')
 
     return render(request, 'database/priceHistory.html', {
-        'labels': sorted(set(labels)),
-        'datasets': list(partial_data.values()),
-        'product_name': targets[0].product.name,
-        'target_refs': [{'url': target.url, 'alias': target.alias} for target in targets]
+        'product_name': product_name,
+        'target_refs': target_refs,
+        'chart': chart
     })
 
 

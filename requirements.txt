@@ -9,3 +9,5 @@ extruct
 gunicorn
 webdriver-manager
 selenium
+plotly
+pandas

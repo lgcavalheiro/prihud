@@ -161,7 +161,7 @@ class PriceHistoryViewTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, test_price_history.target.product.name)
-        self.assertGreater(len(response.context['datasets']), 0)
+        self.assertGreater(len(response.context['target_refs']), 0)
 
 
 @tag('view')
