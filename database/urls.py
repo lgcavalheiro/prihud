@@ -9,5 +9,7 @@ urlpatterns = [
          views.ProductsByCategoryView, name='productsByCategoryView'),
     path('products/', views.ProductListView.as_view(), name='productList'),
     path('history/<int:product_id>/', views.PriceHistoryView, name='priceHistory'),
-    path('admin/db-download/', views.DownloadDatabaseView, name="downloadDatabase")
+    path('admin/db-download/', views.DownloadDatabaseView, name="downloadDatabase"),
+    path('admin/scrape', views.ScrapeCommandView, name="scrapeCommand"),
+    path('admin/explore', views.ExploreCommandView, name="exploreCommand")
 ]

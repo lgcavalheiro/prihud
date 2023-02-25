@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from django.test.client import Client
 from django.core.management import call_command
 from django.test import tag
-from unittest import skip
 from io import StringIO
 from .utils import gen_color, rand
 from .models import Category, Product, Target, PriceHistory, Cookie, DefaultSelector, Statuses, SelectorTypes
@@ -14,6 +13,10 @@ DEFAULT_USER = "testuser"
 DEFAULT_EMAIL = "test@user.local"
 DEFAULT_PASS = "1test2password3"
 DEFAULT_URL = "test_url"
+
+ADMIN_USER = "admin"
+ADMIN_PASS = "adm123"
+ADMIN_EMAIL = "admin@user.local"
 
 
 def create_category():
@@ -50,10 +53,15 @@ def setup_login(self):
     self.client = Client()
     self.user = User.objects.create_user(
         DEFAULT_USER, DEFAULT_EMAIL, DEFAULT_PASS)
+    self.admin = User.objects.create_superuser(
+        ADMIN_USER, ADMIN_EMAIL, ADMIN_PASS)
 
 
-def do_login(self):
-    self.client.login(username=DEFAULT_USER, password=DEFAULT_PASS)
+def do_login(self, as_admin=False):
+    if as_admin:
+        self.client.login(username=ADMIN_USER, password=ADMIN_PASS)
+    else:
+        self.client.login(username=DEFAULT_USER, password=DEFAULT_PASS)
 
 
 @tag('util')
@@ -162,11 +170,17 @@ class DownloadDatabaseViewTest(TestCase):
         setup_login(self)
 
     def test_show_download_link(self):
-        do_login(self)
+        do_login(self, as_admin=True)
         url = reverse('database:downloadDatabase')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Download database file")
+
+    def test_show_download_link_redirect(self):
+        do_login(self)
+        url = reverse('database:downloadDatabase')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
 
 
 @tag('command')
@@ -313,3 +327,56 @@ class DefaultSelectorModelTest(TestCase):
 
     def test_can_str(self):
         self.assertEqual(self.selector.name, self.selector.__str__())
+
+
+@tag('view')
+class ScrapeCommandViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        setup_login(cls)
+
+    def test_redirects_non_admins(self):
+        do_login(self)
+        response = self.client.get(reverse('database:scrapeCommand'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_can_run_scrape_command_from_view(self):
+        do_login(self, as_admin=True)
+        response = self.client.post(reverse('database:scrapeCommand'), data={
+            'targets': [1],
+            'frequency': ''
+        })
+        self.assertEqual(response.status_code, 200)
+
+
+@tag('view')
+class ExploreCommandViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        setup_login(cls)
+
+    def test_redirects_non_admins(self):
+        do_login(self)
+        response = self.client.get(reverse('database:exploreCommand'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_can_run_explore_command_from_view_and_download_result(self):
+        do_login(self, as_admin=True)
+        response = self.client.post(reverse('database:exploreCommand'), data={
+            'operation': 'explore-custom',
+            'url': 'https://pt.aliexpress.com/item/1005003603757192.html',
+            'selector-type': SelectorTypes.CSS,
+            'selector': '.product-price-current > span:nth-child(1)'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Status:")
+        self.assertContains(response, "Download result")
+
+        result_file = response.context[-1]["exploration_result"]["result_file"]
+        response = self.client.post(reverse('database:exploreCommand'), data={
+            'operation': 'download-result',
+            'result_file': result_file
+        })
+        content_disposition = response.get('Content-Disposition')
+        self.assertEqual(content_disposition,
+                         'attachment; filename=%s' % result_file)

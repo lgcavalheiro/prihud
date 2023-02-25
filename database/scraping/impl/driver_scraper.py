@@ -1,4 +1,8 @@
-import requests
+"""
+Module providing DriverScraper class.
+Used for navigating targets using the provided webdriver.
+"""
+
 from database.scraping.interfaces import ScraperInterface
 
 
@@ -6,6 +10,8 @@ CACHE_URL = 'https://webcache.googleusercontent.com/search?q=cache:'
 
 
 class DriverScraper(ScraperInterface):
+    """ DriverScraper class. Used for all target navigation. """
+
     driver = None
 
     def __init__(self, driver):

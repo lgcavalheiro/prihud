@@ -1,10 +1,8 @@
 from django.utils.timezone import now
 from django.db import models
-from django.urls import reverse
 from django.db.models import Min, Max
 from django.utils.translation import gettext_lazy as _
 from selenium.webdriver.common.by import By
-from datetime import datetime
 
 
 class Statuses(models.TextChoices):
@@ -12,6 +10,7 @@ class Statuses(models.TextChoices):
     OUT_OF_STOCK = 'O', _('Out of stock')
     NO_SELECTOR = 'N', _('No selector set')
     PRICE_NOT_FOUND = 'P', _('Price not found')
+    CACHED = "C", _("Cached")
     UNDEFINED = 'U', _('Undefined status')
 
 
@@ -103,7 +102,7 @@ class Target(models.Model):
         return PriceHistory.objects.filter(target_id=self.id).order_by('-created_at').first()
 
     def is_available(self):
-        return self.status == Statuses.SUCCESS
+        return self.status in [Statuses.SUCCESS, Statuses.CACHED]
 
 
 class PriceHistory(models.Model):

@@ -6,3 +6,7 @@ class PriceNotFoundException(Exception):
 class NoSelectorException(Exception):
     def __str__(self):
         return self.__class__.__name__
+
+class CacheNotChangedException(Exception):
+    def __str__(self):
+        return self.__class__.__name__

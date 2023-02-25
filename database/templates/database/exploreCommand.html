@@ -1,0 +1,123 @@
+{% extends 'base.html' %} {% block content %}
+<main class="container">
+  <h1>Explore command</h1>
+  <form action="{% url 'database:exploreCommand' %}" method="post">
+    {% csrf_token %}
+    <article>
+      <header>Select exploration type</header>
+      <div class="grid">
+        <label for="custom-target">
+          <input
+            type="radio"
+            id="custom-target"
+            name="size"
+            value="custom-target"
+            checked
+          />
+          Custom target
+        </label>
+        <label for="known-target">
+          <input
+            type="radio"
+            id="known-target"
+            name="size"
+            value="known-target"
+          />
+          Known target
+        </label>
+      </div>
+    </article>
+
+    <article id="custom-target-inputs">
+      <header>Custom target</header>
+      <label for="url">Target url</label>
+      <input type="text" name="url" />
+      <label for="selector-type">Selector type</label>
+      <select name="selector-type">
+        <option value="">---</option>
+        {% for type in selector_types %}
+        <option value="{{ type.0 }}">{{ type.1 }}</option>
+        {% endfor %}
+      </select>
+      <label for="selector">Selector</label>
+      <input type="text" name="selector" />
+      <input type="hidden" name="operation" value="explore-custom" />
+      <button type="submit">Explore</button>
+    </article>
+
+    <article id="known-target-inputs" style="display: none">
+      <header>Known target</header>
+      <select name="selected-target">
+        {% for target in targets %}
+        <option value="{{ target.id }}">
+          {% firstof target.alias target.url %}
+        </option>
+        {% endfor %}
+      </select>
+      <input type="hidden" name="operation" value="explore-known" />
+      <button type="submit">Explore</button>
+    </article>
+  </form>
+
+  {% if exploration_result %}
+  <article>
+    {% if exploration_result.success %}
+    <header>Success</header>
+    <div class="grid bottom-padded">
+      <span>Status: {{ exploration_result.status }}</span>
+      <span>Price: {{ exploration_result.price }}</span>
+    </div>
+    <div class="grid bottom-padded">
+      <span>Duration {{ exploration_result.duration }}</span>
+      <span>Started {{ exploration_result.start_time }}</span>
+      <span>Ended {{ exploration_result.end_time }}</span>
+    </div>
+    {% else %}
+    <header>Failed</header>
+    <span>Status: {{ exploration_result.status }}</span>
+    <span>{{ exploration_result.message }}</span>
+    <p>{{ exploration_result.error }}</p>
+    {% endif %}
+    <form action="{% url 'database:exploreCommand' %}" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="operation" value="download-result" />
+      <input
+        type="hidden"
+        name="result_file"
+        value="{{ exploration_result.result_file }}"
+      />
+      <input type="submit" value="Download result" />
+    </form>
+  </article>
+  {% endif %}
+</main>
+
+<script>
+  function onSubmit(event) {
+    event.target.setAttribute("aria-busy", "true");
+  }
+
+  function onRadioClick(event) {
+    if (event.target.value === "known-target") {
+      knownDiv.style.display = "block";
+      customDiv.style.display = "none";
+    }
+
+    if (event.target.value === "custom-target") {
+      knownDiv.style.display = "none";
+      customDiv.style.display = "block";
+    }
+  }
+
+  const customDiv = document.querySelector("#custom-target-inputs");
+  const knownDiv = document.querySelector("#known-target-inputs");
+
+  document.querySelectorAll("input[type='radio']").forEach((radio) => {
+    radio.onclick = onRadioClick;
+  });
+
+  document.querySelectorAll("button[type='submit']").forEach((btn) => {
+    btn.onclick = onSubmit;
+  });
+</script>
+{% endblock %}

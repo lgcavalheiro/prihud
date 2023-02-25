@@ -1,3 +1,8 @@
+"""
+Module providing PriceGetter class.
+Used for all price scraping tasks.
+"""
+
 import extruct
 from database.scraping.exceptions import PriceNotFoundException, NoSelectorException
 from database.scraping.interfaces import PriceGetterInterface
@@ -6,6 +11,12 @@ NOT_FOUND_CONST = -1
 
 
 class PriceGetter(PriceGetterInterface):
+    """ 
+    PriceGetter class. 
+    Gets prices from targets by means 
+    of metadata scraping or page scraping. 
+    """
+
     driver = None
     availabilities = ['InStock', 'PreOrder', 'PreSale',
                       'OnlineOnly', 'LimitedAvailability', 'InStoreOnly']
@@ -36,8 +47,8 @@ class PriceGetter(PriceGetterInterface):
                     status = 'O'
                 price = data['offers']['price']
                 return (price, status)
-        else:
-            return (NOT_FOUND_CONST, NOT_FOUND_CONST)
+
+        return (NOT_FOUND_CONST, NOT_FOUND_CONST)
 
     def get_price_from_page(self, target):
         status = 'S'
@@ -58,11 +69,11 @@ class PriceGetter(PriceGetterInterface):
 
     def get_price(self, target):
         (price, status) = self.get_price_from_metadata(target.url)
-        if price != NOT_FOUND_CONST and status != NOT_FOUND_CONST:
+        if NOT_FOUND_CONST not in (price, status):
             return (price, status)
 
         (price, status) = self.get_price_from_page(target)
-        if price != NOT_FOUND_CONST and status != NOT_FOUND_CONST:
+        if NOT_FOUND_CONST not in (price, status):
             return (price, status)
 
         raise PriceNotFoundException()

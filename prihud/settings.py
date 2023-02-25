@@ -35,9 +35,17 @@ SESSION_COOKIE_SECURE = True if env('ENV', default='dev') == 'prod' else False
 
 SECURE_SSL_REDIRECT = True if env('ENV', default='dev') == 'prod' else False
 
-ALLOWED_HOSTS = env('ALLOWED_HOSTS', default=[])
+SECURE_HSTS_SECONDS = 31536000 if env('ENV', default='dev') == 'prod' else 60
 
-CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS', default=[])
+SECURE_HSTS_PRELOAD = True if env('ENV', default='dev') == 'prod' else False
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True if env('ENV', default='dev') == 'prod' else False
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if env('ENV', default='dev') == 'prod' else None
+
+ALLOWED_HOSTS = [env('ALLOWED_HOSTS', default="*")]
+
+CSRF_TRUSTED_ORIGINS = [env('CSRF_TRUSTED_ORIGINS', default="")]
 
 # Application definition
 
@@ -60,6 +68,31 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
+        }
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'prihud.log'),
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        'prihud': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        }
+    }
+}
 
 ROOT_URLCONF = 'prihud.urls'
 

@@ -30,6 +30,19 @@
       <ul>
         <li><a href="{% url 'database:categoryList' %}">Categories</a></li>
         <li><a href="{% url 'database:productList' %}">Products</a></li>
+        {% if user.is_superuser %}
+        <li role="list" dir="rtl">
+          <a href="#" aria-haspopup="listbox">Admin</a>
+          <ul role="listbox">
+            <li><a href="{% url 'admin:index' %}">Admin Panel</a></li>
+            <li><a href="{% url 'database:scrapeCommand' %}">Scrape</a></li>
+            <li><a href="{% url 'database:exploreCommand' %}">Explore</a></li>
+            <li>
+              <a href="{% url 'database:downloadDatabase' %}">DB download</a>
+            </li>
+          </ul>
+        </li>
+        {% endif %}
         <li>
           <a href="{% url 'logout' %}">
             <svg class="icon">

@@ -39,3 +39,7 @@
 .warn {
   color: var(--warning);
 }
+
+.bottom-padded {
+  padding-bottom: 16px;
+}
