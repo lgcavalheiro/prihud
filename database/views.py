@@ -1,8 +1,10 @@
+'''
+Module providing all database app views.
+'''
+
 import json
-import os
-import plotly.express as px
+from datetime import datetime
 import pandas as pd
-from plotly.offline import plot
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
@@ -12,15 +14,14 @@ from django.core.files import File
 from django.http.response import HttpResponse
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.core.management import call_command
-from datetime import datetime
-from .utils import gen_color
-from .models import PriceHistory, Target, Product, Category, Frequencies, SelectorTypes
-from .scraping.utils import ScrapeStarter, running_commands
-from prihud.settings import BASE_DIR
+from database.utils import generate_price_history_charts
+from database.models import PriceHistory, Target, Product, Category, Frequencies, SelectorTypes
+from database.scraping.utils import ScrapeStarter, running_commands, run_explore_command
 
 
-class CategoryListView(LoginRequiredMixin, ListView):
+class CategoryListView(LoginRequiredMixin, ListView):  # pylint: disable=too-many-ancestors
+    ''' Class that provides the category list view '''
+
     template_name = 'database/categoryList.html'
     context_object_name = 'categories'
 
@@ -28,7 +29,9 @@ class CategoryListView(LoginRequiredMixin, ListView):
         return Category.objects.order_by('name').all()
 
 
-class ProductListView(LoginRequiredMixin, ListView):
+class ProductListView(LoginRequiredMixin, ListView):  # pylint: disable=too-many-ancestors
+    ''' Class that provides the product list view '''
+
     template_name = 'database/productList.html'
     context_object_name = 'products'
 
@@ -37,7 +40,9 @@ class ProductListView(LoginRequiredMixin, ListView):
 
 
 @login_required
-def ProductsByCategoryView(request, category_id):
+def view_products_by_category(request, category_id):
+    ''' Function that renders the products by category view '''
+
     products = Product.objects.filter(categories=category_id)
 
     return render(request, 'database/productList.html', {
@@ -46,7 +51,9 @@ def ProductsByCategoryView(request, category_id):
 
 
 @login_required
-def PriceHistoryView(request, product_id):
+def view_price_history(request, product_id):
+    ''' Function that renders the price history view '''
+
     targets = Target.objects.filter(product_id=product_id)
     if not targets:
         return render(request, 'database/priceHistory.html')
@@ -66,26 +73,19 @@ def PriceHistoryView(request, product_id):
     target_refs = json.loads(data_frame.filter(
         items=['url', 'Alias']).drop_duplicates().to_json(orient='records'))
 
-    fig = px.line(data_frame, x='Collection date', y='Price',
-                  color='Alias', markers=True)
-    fig.for_each_trace(lambda trace: trace.update(
-        name=f'{trace.name[:45]}...'))
-    fig.update_layout(
-        title=f'{product_name} - Price history',
-        paper_bgcolor='#18232C',
-        font=dict(color="rgb(213, 220, 226)"),
-        legend=dict(font=dict(size=10)))
-    chart = plot(fig, output_type='div')
+    charts = generate_price_history_charts(data_frame, product_name)
 
     return render(request, 'database/priceHistory.html', {
         'product_name': product_name,
         'target_refs': target_refs,
-        'chart': chart
+        'charts': charts
     })
 
 
-@login_required
-def DownloadDatabaseView(request):
+@ login_required
+def view_download_database(request):
+    ''' Function that renders the download database view '''
+
     if not request.user.is_superuser:
         return HttpResponseRedirect(reverse('index'))
 
@@ -97,7 +97,7 @@ def DownloadDatabaseView(request):
             new_name = f"{datetime.now()}{db_path}"
             response = HttpResponse(
                 db_file, content_type='application/x-sqlite3')
-            response['Content-Disposition'] = 'attachment; filename=%s' % new_name
+            response['Content-Disposition'] = f'attachment; filename={new_name}'
             response['Content-Length'] = db_file.size
 
         return response
@@ -107,8 +107,10 @@ def DownloadDatabaseView(request):
     })
 
 
-@login_required
-def ScrapeCommandView(request):
+@ login_required
+def view_scrape_command(request):
+    ''' Function that renders the scrape command view '''
+
     if not request.user.is_superuser:
         return HttpResponseRedirect(reverse('index'))
 
@@ -125,23 +127,10 @@ def ScrapeCommandView(request):
     })
 
 
-def run_explore_command(url, selector_type, selector):
-    result = call_command('explore', u=url, t=selector_type, s=selector)
-    exploration_result = json.loads(result)
+@ login_required
+def view_explore_command(request):
+    ''' Funtion that renders the explore command view '''
 
-    file_url = url.replace('https://', '').replace('/', '').replace(' ', '_')
-    result_file = os.path.join(
-        BASE_DIR, f'explore_{file_url}_{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.html')
-    exploration_result['result_file'] = result_file
-
-    with open(result_file, 'w') as f:
-        f.write(exploration_result['page_source'])
-
-    return exploration_result
-
-
-@login_required
-def ExploreCommandView(request):
     if not request.user.is_superuser:
         return HttpResponseRedirect(reverse('index'))
 
@@ -156,7 +145,7 @@ def ExploreCommandView(request):
 
             with File(open(result_file, "rb")) as file:
                 response = HttpResponse(file, content_type='text/html')
-                response['Content-Disposition'] = 'attachment; filename=%s' % result_file
+                response['Content-Disposition'] = f'attachment; filename={result_file}'
                 response['Content-Length'] = file.size
 
             return response

@@ -46,3 +46,6 @@ dbu-prod: present
 
 test:
 	export TESTING=True && coverage run --source="." manage.py test ${ARGS} && coverage html
+
+lint:
+	pylint --load-plugins=pylint_django --django-settings-module=prihud.settings ${FILE}

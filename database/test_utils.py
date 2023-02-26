@@ -1,14 +1,13 @@
+'''
+Module providing test utilities for the database app.
+'''
+
 from prihud.logger import AppriseLogger
 
 
 class TestLogger(AppriseLogger):
-    __apr = None
-
-    def __init__(self):
-        pass
-
-    def __del__(self):
-        pass
+    ''' Class that is used to log messages 
+    during tests in place of the standard logger class '''
 
     def info(self, body, title=None):
         print(body, title, "INFO")

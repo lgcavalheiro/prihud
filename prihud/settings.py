@@ -180,3 +180,7 @@ DRIVER_PATH = env('DRIVER_PATH', default=None)
 DISCORD_HOOK = env('DISCORD_HOOK')
 
 TESTING = True if os.environ.get('TESTING') == "True" else False
+
+EXPLORATION_RESULTS_DIR = BASE_DIR / 'exploration_results'
+if not os.path.exists(EXPLORATION_RESULTS_DIR):
+    os.mkdir(EXPLORATION_RESULTS_DIR)

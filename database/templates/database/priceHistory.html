@@ -2,7 +2,7 @@
 <main class="container">
   {% if target_refs %}
   <h3>{{ product_name }}</h3>
-  {% autoescape off %} {{ chart }} {% endautoescape %}
+  {% autoescape off %} {{ charts.line_chart }} {{ charts.scatter_plot }} {% endautoescape %}
   <br />
   <details>
     <summary>Go to product page</summary>
