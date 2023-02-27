@@ -41,8 +41,9 @@ def run_explore_command(url, selector_type, selector):
     exploration_result = json.loads(result)
 
     file_url = url.replace('https://', '').replace('/', '').replace(' ', '_')
-    result_file = os.path.join(EXPLORATION_RESULTS_DIR,
-                               f'explore_{file_url}_{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.html')
+    now = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    result_file = os.path.join(
+        EXPLORATION_RESULTS_DIR, f'explore_{file_url}_{now}.html')
     exploration_result['result_file'] = result_file
 
     with open(result_file, 'w', encoding='utf-8') as file:

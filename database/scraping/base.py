@@ -6,8 +6,8 @@ from database.scraping.impl.driver_scraper import DriverScraper
 from database.scraping.impl.price_getter import PriceGetter
 from database.scraping.impl.strategies import DefaultStrategy, CacheStrategy
 from database.models import Statuses
-from prihud.logger import AppriseLogger
 from database.test_utils import TestLogger
+from prihud.logger import AppriseLogger
 from prihud.settings import DRIVER_PATH, TESTING
 
 
