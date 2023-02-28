@@ -13,7 +13,8 @@ from prihud.settings import TESTING
 class ScrapingJob(BaseJob, MultiTargetJob, CanLog):
     """
     ScrapingJob class.
-    Used for all recurrent scraping tasks that feed the application's database.
+    Used for all recurrent scraping tasks 
+    that feed the application's database.
     """
 
     start_time, end_time = None, None

@@ -1,3 +1,4 @@
+import os
 from django.core.management.base import BaseCommand
 from database.scraping.impl.scraping_job import ScrapingJob
 from database.models import Frequencies, Target
@@ -25,6 +26,8 @@ class Command(BaseCommand):
             return
 
         report = ScrapingJob(targets).start()
+        os.system("killall -9 geckodriver")
+        os.system("killall -9 firefox-esr")
 
         self.stdout.write("=== Report results ===")
         self.stdout.write(f"Started at: {report['start_time']}")

@@ -5,7 +5,7 @@ FROM python:3.11.2-bullseye AS base
     ARG TZ=Europe/London
     ENV TZ $TZ
 
-    COPY cron /var/spool/cron/crontabs/app
+    COPY cron /var/spool/cron/crontabs/root
     COPY templates ./templates
     COPY database ./database
     COPY prihud ./prihud
