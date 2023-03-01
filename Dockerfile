@@ -1,4 +1,4 @@
-FROM python:3.11.2-bullseye AS base
+FROM python:3.11 AS base
     WORKDIR /app
     EXPOSE 8000
 
