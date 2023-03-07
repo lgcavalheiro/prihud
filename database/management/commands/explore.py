@@ -1,4 +1,5 @@
 import json
+import os
 from django.core.management.base import BaseCommand
 from database.scraping.impl.exploration_job import ExplorationJob
 from database.models import Target
@@ -23,5 +24,7 @@ class Command(BaseCommand):
             url=url, custom_selector_type=selector_type, custom_selector=selector)
 
         result = ExplorationJob(target).start()
+        os.system("killall -9 geckodriver")
+        os.system("killall -9 firefox")
 
         return json.dumps(result, indent=2)
