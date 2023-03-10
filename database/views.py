@@ -7,6 +7,7 @@ from datetime import datetime
 import pandas as pd
 from django.shortcuts import render
 from django.views.generic import ListView
+from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
@@ -51,6 +52,7 @@ def view_products_by_category(request, category_id):
 
 
 @login_required
+@cache_page(86400, cache="filesystem")
 def view_price_history(request, product_id):
     ''' Function that renders the price history view '''
 
