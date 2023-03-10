@@ -26,6 +26,9 @@ dev-docker-run: dev-check-image
 dev-check-image:
 	if [ $(shell docker images -q ${PROJECT}_dev | wc -l) = 0 ]; then make dev-docker-build; fi
 
+prod-serve: present
+	gunicorn -c gunicorn/prod.py
+
 prod-docker-build: present
 	docker build --no-cache --force-rm . -t ${PROJECT}_prod --build-arg DJANGO_ENV=prod --build-arg TZ=America/Sao_Paulo --target dockerized
 
