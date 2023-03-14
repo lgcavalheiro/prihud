@@ -52,7 +52,7 @@ def view_products_by_category(request, category_id):
 
 
 @login_required
-@cache_page(86400, cache=("filesystem" if os.environ.get("ENV") == "prod" else "default"))
+@cache_page(21600, cache=("filesystem" if os.environ.get("ENV") == "prod" else "default"))
 def view_price_history(request, product_id):
     ''' Function that renders the price history view '''
 
