@@ -39,9 +39,11 @@ SECURE_HSTS_SECONDS = 31536000 if env('ENV', default='dev') == 'prod' else 60
 
 SECURE_HSTS_PRELOAD = True if env('ENV', default='dev') == 'prod' else False
 
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True if env('ENV', default='dev') == 'prod' else False
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True if env(
+    'ENV', default='dev') == 'prod' else False
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if env('ENV', default='dev') == 'prod' else None
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if env(
+    'ENV', default='dev') == 'prod' else None
 
 ALLOWED_HOSTS = [env('ALLOWED_HOSTS', default="*")]
 
@@ -112,6 +114,17 @@ TEMPLATES = [
     },
 ]
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+    'filesystem': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': env('CACHE_DIR', default='/tmp/django_cache'),
+        'TIMEOUT': 86400
+    }
+}
+
 WSGI_APPLICATION = 'prihud.wsgi.application'
 
 
@@ -180,3 +193,7 @@ DRIVER_PATH = env('DRIVER_PATH', default=None)
 DISCORD_HOOK = env('DISCORD_HOOK')
 
 TESTING = True if os.environ.get('TESTING') == "True" else False
+
+EXPLORATION_RESULTS_DIR = BASE_DIR / 'exploration_results'
+if not os.path.exists(EXPLORATION_RESULTS_DIR):
+    os.mkdir(EXPLORATION_RESULTS_DIR)

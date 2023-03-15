@@ -1,29 +1,27 @@
-FROM python:3.10-alpine AS base
+FROM python:3.11 AS base
     WORKDIR /app
     EXPOSE 8000
 
     ARG TZ=Europe/London
     ENV TZ $TZ
 
-    COPY cron /var/spool/cron/crontabs/app
-    COPY requirements.txt ./
-    COPY .env ./
-    COPY manage.py ./
-    COPY prihud ./prihud
+    COPY cron /var/spool/cron/crontabs/root
     COPY templates ./templates
     COPY database ./database
-    COPY db.sqlite3 ./
-    COPY entrypoint.sh ./
+    COPY prihud ./prihud
     COPY static ./static
-    
-    RUN apk update && \
-        apk add --no-cache firefox busybox-suid su-exec tzdata && \
-        chmod u+s /sbin/su-exec && \
+    COPY requirements.txt .env manage.py db.sqlite3 entrypoint.sh ./
+
+    RUN apt update && \
+        apt upgrade -y && \
+        apt install -y firefox-esr cron && \
         pip install --upgrade pip && \
-        pip3 install --no-cache-dir -r requirements.txt && \
+        pip install --no-cache-dir -r requirements.txt && \
+        python manage.py collectstatic --no-input && \
         chmod +x ./entrypoint.sh && \
-        addgroup -S app && adduser -S app -G app && \
-        python manage.py collectstatic --no-input
+        chmod u+s /usr/sbin/cron && \
+        addgroup --system app && \
+        adduser --system app --ingroup app
 
 FROM base AS dockerized
     ARG DJANGO_ENV=dev

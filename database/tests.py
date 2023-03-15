@@ -1,13 +1,14 @@
+# pylint: disable=missing-docstring
+
+from io import StringIO
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test.client import Client
 from django.core.management import call_command
 from django.test import tag
-from io import StringIO
-from .utils import gen_color, rand
-from .models import Category, Product, Target, PriceHistory, Cookie, DefaultSelector, Statuses, SelectorTypes
-from .scraping.impl.scraping_job import ScrapingJob
+from database import models
+from database.scraping.impl.scraping_job import ScrapingJob
 
 DEFAULT_USER = "testuser"
 DEFAULT_EMAIL = "test@user.local"
@@ -20,24 +21,26 @@ ADMIN_EMAIL = "admin@user.local"
 
 
 def create_category():
-    return Category.objects.create(name="Test category")
+    return models.Category.objects.create(name="Test category")
 
 
 def create_product():
-    test_product = Product.objects.create(name="Test product")
+    test_product = models.Product.objects.create(name="Test product")
     test_product.categories.set([create_category()])
     return test_product
 
 
 def create_target(url=None):
     url = url if url else DEFAULT_URL
-    return Target.objects.create(url=url, custom_selector_type=SelectorTypes.CSS,
-                                 custom_selector=".product-price-current > span:nth-child(1)",
-                                 product=create_product())
+    custom_selector = ".product-price-current > span:nth-child(1)"
+    return models.Target.objects.create(url=url,
+                                        custom_selector_type=models.SelectorTypes.CSS,
+                                        custom_selector=custom_selector,
+                                        product=create_product())
 
 
 def create_price_history():
-    return PriceHistory.objects.create(price=2.5, target=create_target())
+    return models.PriceHistory.objects.create(price=2.5, target=create_target())
 
 
 def run_scrape_command(use_ids=False):
@@ -51,9 +54,9 @@ def run_scrape_command(use_ids=False):
 
 def setup_login(self):
     self.client = Client()
-    self.user = User.objects.create_user(
+    self.user = get_user_model().objects.create_user(
         DEFAULT_USER, DEFAULT_EMAIL, DEFAULT_PASS)
-    self.admin = User.objects.create_superuser(
+    self.admin = get_user_model().objects.create_superuser(
         ADMIN_USER, ADMIN_EMAIL, ADMIN_PASS)
 
 
@@ -62,18 +65,6 @@ def do_login(self, as_admin=False):
         self.client.login(username=ADMIN_USER, password=ADMIN_PASS)
     else:
         self.client.login(username=DEFAULT_USER, password=DEFAULT_PASS)
-
-
-@tag('util')
-class UtilsTest(TestCase):
-    def test_generates_number_between_zero_and_255(self):
-        num = rand()
-        self.assertGreaterEqual(num, 0)
-        self.assertLessEqual(num, 255)
-
-    def test_generates_valid_color(self):
-        color = gen_color()
-        self.assertIs(len(color), 7)
 
 
 @tag('view')
@@ -161,7 +152,7 @@ class PriceHistoryViewTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, test_price_history.target.product.name)
-        self.assertGreater(len(response.context['datasets']), 0)
+        self.assertGreater(len(response.context['target_refs']), 0)
 
 
 @tag('view')
@@ -213,7 +204,7 @@ class ScrapeCommandTest(TestCase):
 class CategoryModelTest(TestCase):
     def test_can_str(self):
         category = create_category()
-        self.assertEqual(category.name, category.__str__())
+        self.assertEqual(category.name, str(category))
 
 
 @tag('model')
@@ -224,7 +215,7 @@ class ProductModelTest(TestCase):
         cls.product = cls.history.target.product
 
     def test_can_str(self):
-        self.assertEqual(self.product.name, self.product.__str__())
+        self.assertEqual(self.product.name, str(self.product))
 
     def test_get_price_history(self):
         price_history = self.product.get_price_history()
@@ -248,11 +239,11 @@ class TargetModelTest(TestCase):
         cls.target = cls.history.target
 
     def test_can_str(self):
-        self.assertEqual(self.target.url, self.target.__str__())
+        self.assertEqual(self.target.url, str(self.target))
 
     def test_can_str_with_alias(self):
         self.target.alias = "alias-test"
-        self.assertEqual(self.target.alias, self.target.__str__())
+        self.assertEqual(self.target.alias, str(self.target))
 
     def test_min_max_price(self):
         price_history = self.target.min_max_price()
@@ -285,15 +276,20 @@ class PriceHistoryModelTest(TestCase):
 
     def test_can_str(self):
         self.assertEqual(
-            f'{self.history.price} - {self.history.target} - {self.history.created_at}', self.history.__str__())
+            ' - '.join([
+                str(self.history.price),
+                str(self.history.target),
+                str(self.history.created_at)
+            ]),
+            str(self.history))
 
 
 @tag('scraping')
 class ScrapingJobTest(TestCase):
     def setUp(self):
         self.history = create_price_history()
-        cookie = Cookie(url="https://pt.aliexpress.com", name="test-cookie",
-                        value="test-val", path="/", domain=".aliexpress.com")
+        cookie = models.Cookie(url="https://pt.aliexpress.com", name="test-cookie",
+                               value="test-val", path="/", domain=".aliexpress.com")
         cookie.save()
         self.job = ScrapingJob([self.history.target])
 
@@ -302,31 +298,33 @@ class ScrapingJobTest(TestCase):
             "test-cookie", self.job.scraper.driver.get_cookie("test-cookie")['name'])
 
     def test_can_save_target_status(self):
-        self.job.save_target_status(self.history.target, Statuses.OUT_OF_STOCK)
-        self.assertEqual(self.history.target.status, Statuses.OUT_OF_STOCK)
+        self.job.save_target_status(
+            self.history.target, models.Statuses.OUT_OF_STOCK)
+        self.assertEqual(self.history.target.status,
+                         models.Statuses.OUT_OF_STOCK)
 
 
 @tag('model')
 class CookieModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.cookie = Cookie(url="https://pt.aliexpress.com", name="test-cookie",
-                            value="test-val", path="/", domain=".aliexpress.com")
+        cls.cookie = models.Cookie(url="https://pt.aliexpress.com", name="test-cookie",
+                                   value="test-val", path="/", domain=".aliexpress.com")
 
     def test_can_str(self):
         self.assertEqual(
-            f'{self.cookie.url} - {self.cookie.name}', self.cookie.__str__())
+            f'{self.cookie.url} - {self.cookie.name}', str(self.cookie))
 
 
 @tag('model')
 class DefaultSelectorModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.selector = DefaultSelector(
-            name="test-selector", selector_type=SelectorTypes.CSS, selector=".test")
+        cls.selector = models.DefaultSelector(
+            name="test-selector", selector_type=models.SelectorTypes.CSS, selector=".test")
 
     def test_can_str(self):
-        self.assertEqual(self.selector.name, self.selector.__str__())
+        self.assertEqual(self.selector.name, str(self.selector))
 
 
 @tag('view')
@@ -365,7 +363,7 @@ class ExploreCommandViewTest(TestCase):
         response = self.client.post(reverse('database:exploreCommand'), data={
             'operation': 'explore-custom',
             'url': 'https://pt.aliexpress.com/item/1005003603757192.html',
-            'selector-type': SelectorTypes.CSS,
+            'selector-type': models.SelectorTypes.CSS,
             'selector': '.product-price-current > span:nth-child(1)'
         })
         self.assertEqual(response.status_code, 200)
@@ -379,4 +377,4 @@ class ExploreCommandViewTest(TestCase):
         })
         content_disposition = response.get('Content-Disposition')
         self.assertEqual(content_disposition,
-                         'attachment; filename=%s' % result_file)
+                         f'attachment; filename={result_file}')

@@ -1,4 +1,3 @@
-
 from distutils.spawn import find_executable
 from selenium.webdriver import Firefox, FirefoxOptions
 from webdriver_manager.firefox import GeckoDriverManager
@@ -6,8 +5,8 @@ from database.scraping.impl.driver_scraper import DriverScraper
 from database.scraping.impl.price_getter import PriceGetter
 from database.scraping.impl.strategies import DefaultStrategy, CacheStrategy
 from database.models import Statuses
-from prihud.logger import AppriseLogger
 from database.test_utils import TestLogger
+from prihud.logger import AppriseLogger
 from prihud.settings import DRIVER_PATH, TESTING
 
 
@@ -27,6 +26,8 @@ class BaseJob:
         options.add_argument('--headless')
         options.set_preference("http.response.timeout", 30)
         options.set_preference("dom.max_script_run_time", 30)
+        options.set_preference("dom.disable_beforeunload", True)
+        options.set_preference("browser.tabs.warnOnClose", False)
         options.set_preference('permissions.default.image', 2)
         options.set_preference(
             'dom.ipc.plugins.enabled.libflashplayer.so', 'false')
@@ -43,6 +44,10 @@ class BaseJob:
         ]
 
         self.load_cookies()
+
+    def __del__(self):
+        if self.driver:
+            self.driver.quit()
 
     def load_cookies(self):
         raise NotImplementedError

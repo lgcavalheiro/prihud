@@ -27,7 +27,7 @@ class Command(BaseCommand):
 
         report = ScrapingJob(targets).start()
         os.system("killall -9 geckodriver")
-        os.system("killall -9 firefox")
+        os.system("killall -9 firefox-esr")
 
         self.stdout.write("=== Report results ===")
         self.stdout.write(f"Started at: {report['start_time']}")

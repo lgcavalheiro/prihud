@@ -25,6 +25,6 @@ class Command(BaseCommand):
 
         result = ExplorationJob(target).start()
         os.system("killall -9 geckodriver")
-        os.system("killall -9 firefox")
+        os.system("killall -9 firefox-esr")
 
         return json.dumps(result, indent=2)

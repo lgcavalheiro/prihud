@@ -1,3 +1,5 @@
+''' Module providing admin configurations for the database module '''
+
 from django.contrib import admin
 
 from .models import Category, Target, Product, PriceHistory, Cookie, DefaultSelector

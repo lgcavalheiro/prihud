@@ -1,5 +1,6 @@
 autopep8
 pylint
+pylint-django
 pyflakes
 Django
 apprise
@@ -9,3 +10,5 @@ extruct
 gunicorn
 webdriver-manager
 selenium
+plotly
+pandas
