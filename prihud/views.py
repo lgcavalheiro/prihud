@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -39,7 +38,6 @@ def Logout(request):
     return render(request, 'login.html')
 
 
-@login_required
 def Index(request):
     products = Product.objects.order_by('created_at').all()
     latest = []

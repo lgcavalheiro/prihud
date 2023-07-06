@@ -20,7 +20,7 @@ from database.models import PriceHistory, Target, Product, Category, Frequencies
 from database.scraping.utils import ScrapeStarter, running_commands, run_explore_command
 
 
-class CategoryListView(LoginRequiredMixin, ListView):  # pylint: disable=too-many-ancestors
+class CategoryListView(ListView):  # pylint: disable=too-many-ancestors
     ''' Class that provides the category list view '''
 
     template_name = 'database/categoryList.html'
@@ -30,7 +30,7 @@ class CategoryListView(LoginRequiredMixin, ListView):  # pylint: disable=too-man
         return Category.objects.order_by('name').all()
 
 
-class ProductListView(LoginRequiredMixin, ListView):  # pylint: disable=too-many-ancestors
+class ProductListView(ListView):  # pylint: disable=too-many-ancestors
     ''' Class that provides the product list view '''
 
     template_name = 'database/productList.html'
@@ -40,7 +40,6 @@ class ProductListView(LoginRequiredMixin, ListView):  # pylint: disable=too-many
         return Product.objects.order_by('name').all()
 
 
-@login_required
 def view_products_by_category(request, category_id):
     ''' Function that renders the products by category view '''
 
@@ -51,7 +50,6 @@ def view_products_by_category(request, category_id):
     })
 
 
-@login_required
 @cache_page(21600, cache=("filesystem" if os.environ.get("ENV") == "prod" else "default"))
 def view_price_history(request, product_id):
     ''' Function that renders the price history view '''
@@ -84,7 +82,7 @@ def view_price_history(request, product_id):
     })
 
 
-@ login_required
+@login_required
 def view_download_database(request):
     ''' Function that renders the download database view '''
 
@@ -109,7 +107,7 @@ def view_download_database(request):
     })
 
 
-@ login_required
+@login_required
 def view_scrape_command(request):
     ''' Function that renders the scrape command view '''
 
@@ -129,7 +127,7 @@ def view_scrape_command(request):
     })
 
 
-@ login_required
+@login_required
 def view_explore_command(request):
     ''' Funtion that renders the explore command view '''
 

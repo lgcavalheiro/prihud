@@ -10,7 +10,7 @@
       href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
     />
     <link rel="stylesheet" type="text/css" href="{% static 'global.css' %}" />
-    <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
   </head>
   <body>
     <nav class="container">
@@ -54,7 +54,10 @@
       </ul>
       {% else %}
       <ul>
-        <li>
+        <li
+          class="clickable"
+          onclick="window.location.assign('{% url 'index' %}')"
+        >
           <strong class="center-aligned">
             <svg class="icon">
               <use href="{% static 'feather-sprite.svg' %}#crosshair" />
@@ -64,6 +67,8 @@
         </li>
       </ul>
       <ul>
+        <li><a href="{% url 'database:categoryList' %}">Categories</a></li>
+        <li><a href="{% url 'database:productList' %}">Products</a></li>
         <li>
           <a href="{% url 'login' %}">
             <svg class="icon">
