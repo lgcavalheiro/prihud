@@ -1,6 +1,7 @@
 from distutils.spawn import find_executable
 from selenium.webdriver import Firefox, FirefoxOptions
 from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.firefox.service import Service
 from database.scraping.impl.driver_scraper import DriverScraper
 from database.scraping.impl.price_getter import PriceGetter
 from database.scraping.impl.strategies import DefaultStrategy, CacheStrategy
@@ -34,7 +35,8 @@ class BaseJob:
 
         executable_path = DRIVER_PATH if (DRIVER_PATH and find_executable(
             DRIVER_PATH)) else GeckoDriverManager().install()
-        self.driver = Firefox(options=options, executable_path=executable_path)
+        service = Service(executable_path=executable_path)
+        self.driver = Firefox(options=options, service=service)
 
         self.price_getter = PriceGetter(self.driver)
         self.scraper = DriverScraper(self.driver)
